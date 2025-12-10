@@ -15,9 +15,11 @@ export interface ConnectedUser {
 })
 export class AuthService {
   //////////////////////////////////////////////////////////////
-  user = signal<ConnectedUser | null>(null);
-  token = signal<string | null>(null);
-  isAuthenticated = computed(() => !!this.token());
+  private _user = signal<ConnectedUser | null>(null);
+  private _token = signal<string | null>(null);
+  readonly user = this._user as  typeof this._user;
+  readonly token = this._token as  typeof this._token;
+  readonly isAuthenticated = computed(() => !!this._token());
 
   private storageKey = 'users';
   private tokenKey = 'token';
