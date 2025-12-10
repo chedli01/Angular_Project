@@ -31,7 +31,7 @@ export class LoginComponent {
 
     try {
       await this.auth.login(this.form.value.email, this.form.value.password);
-      this.router.navigate(['/dashboard']); // or homepage
+      this.router.navigate(['/']); // or homepage
     } catch (err: any) {
       alert(err);
     }
