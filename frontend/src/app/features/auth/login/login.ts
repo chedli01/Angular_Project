@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, Validators, FormControl, FormGroup } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { CommonModule } from '@angular/common';
@@ -7,17 +7,20 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule,RouterModule],
+  imports: [ReactiveFormsModule, CommonModule, RouterModule],
   templateUrl: './login.html',
 })
 export class LoginComponent {
   loading = false;
-  form: FormGroup;
+  form: FormGroup<{
+    email: FormControl<string>;
+    password: FormControl<string>;
+  }>;
 
-  constructor(private fb: FormBuilder, private auth: AuthService, private router: Router) {
-    this.form = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
+  constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
+    this.form = new FormGroup({
+      email: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
+      password: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.minLength(6)] }),
     });
   }
 
@@ -28,14 +31,12 @@ export class LoginComponent {
     }
 
     this.loading = true;
-
     try {
-      await this.auth.login(this.form.value.email, this.form.value.password);
-      this.router.navigate(['/']); // or homepage
+      await this.authService.login(this.form.getRawValue());
+      this.router.navigate(['/']); // default page
     } catch (err: any) {
       alert(err);
     }
-
     this.loading = false;
   }
 }

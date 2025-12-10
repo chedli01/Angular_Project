@@ -1,74 +1,74 @@
-import { Injectable } from '@angular/core';
-import { Router } from '@angular/router';
+import { Injectable, signal, computed } from '@angular/core';
+import { UserSignup } from '../models/user.model';
+import * as bcrypt from 'bcryptjs';
 
-export interface User {
-  name: string;
+export interface ConnectedUser {
   email: string;
-  password: string;
+  id: number;
+  name?: string;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
+  //////////////////////////////////////////////////////////////
+  user = signal<ConnectedUser | null>(null);
+  token = signal<string | null>(null);
+  isAuthenticated = computed(() => !!this.token());
+
   private storageKey = 'users';
   private tokenKey = 'token';
 
-  constructor(private router: Router) {}
-
-  // SIGNUP: save user in localStorage
-  signup(user: User): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const users: User[] = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
-      if (users.some(u => u.email === user.email)) {
-        reject('Email already registered');
-        return;
-      }
-
-      users.push(user);
-      localStorage.setItem(this.storageKey, JSON.stringify(users));
-      resolve();
-    });
-  }
-
-  // LOGIN: check credentials and generate fake JWT
-  login(email: string, password: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const users: User[] = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
-      const user = users.find(u => u.email === email && u.password === password);
-
-      if (!user) {
-        reject('Invalid email or password');
-        return;
-      }
-
-      // fake JWT
-      const token = btoa(JSON.stringify({ email, name: user.name, exp: Date.now() + 3600_000 }));
-      localStorage.setItem(this.tokenKey, token);
-      resolve(token);
-    });
-  }
-
-  // LOGOUT
-  logout(): void {
-    localStorage.removeItem(this.tokenKey);
-    this.router.navigate(['/login']);
-  }
-
-  // GET CURRENT USER
-  getCurrentUser(): User | null {
-    const token = localStorage.getItem(this.tokenKey);
-    if (!token) return null;
-    try {
-      const payload = JSON.parse(atob(token));
-      return { name: payload.name, email: payload.email, password: '' };
-    } catch {
-      return null;
+  constructor() {
+    // restore from localStorage
+    const savedToken = localStorage.getItem(this.tokenKey);
+    const savedUser = localStorage.getItem('user');
+    if (savedToken && savedUser) {
+      this.token.set(savedToken);
+      this.user.set(JSON.parse(savedUser));
     }
   }
 
-  // CHECK IF LOGGED IN
-  isLoggedIn(): boolean {
-    return !!localStorage.getItem(this.tokenKey);
+  //////////////////////////////////////////////////////////////
+  async signup(user: UserSignup): Promise<void> {
+    const users: UserSignup[] = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
+
+    if (users.some(u => u.email === user.email)) {
+      return Promise.reject('Email already registered');
+    }
+
+    // hash password before saving
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(user.password, salt);
+
+    users.push({ ...user, password: hashedPassword });
+    localStorage.setItem(this.storageKey, JSON.stringify(users));
+  }
+
+  async login(credentials: { email: string; password: string }): Promise<boolean> {
+    const users: UserSignup[] = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
+    const user = users.find(u => u.email === credentials.email);
+
+    if (!user) return Promise.reject('Invalid email or password');
+
+    const passwordMatch = await bcrypt.compare(credentials.password, user.password);
+    if (!passwordMatch) return Promise.reject('Invalid email or password');
+
+    const fakeToken = btoa(JSON.stringify({ email: user.email, id: Date.now() }));
+    this.token.set(fakeToken);
+    this.user.set({ email: user.email, id: Date.now(), name: user.name });
+
+    localStorage.setItem(this.tokenKey, fakeToken);
+    localStorage.setItem('user', JSON.stringify({ email: user.email, id: Date.now(), name: user.name }));
+
+    return true;
+  }
+
+  logout(): void {
+    this.token.set(null);
+    this.user.set(null);
+    localStorage.removeItem(this.tokenKey);
+    localStorage.removeItem('user');
   }
 }
