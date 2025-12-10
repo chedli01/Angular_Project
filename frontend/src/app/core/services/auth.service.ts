@@ -1,6 +1,8 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { UserSignup } from '../models/user.model';
 import * as bcrypt from 'bcryptjs';
+import { CredentialsDto } from '../../features/auth/login/dto/credentials.dto';
+import { LoginResponseDto } from '../../features/auth/login/dto/login-response.dto';
 
 export interface ConnectedUser {
   email: string;
@@ -46,7 +48,7 @@ export class AuthService {
     localStorage.setItem(this.storageKey, JSON.stringify(users));
   }
 
-  async login(credentials: { email: string; password: string }): Promise<boolean> {
+  async login(credentials: CredentialsDto): Promise<LoginResponseDto> {
     const users: UserSignup[] = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
     const user = users.find(u => u.email === credentials.email);
 
@@ -62,7 +64,7 @@ export class AuthService {
     localStorage.setItem(this.tokenKey, fakeToken);
     localStorage.setItem('user', JSON.stringify({ email: user.email, id: Date.now(), name: user.name }));
 
-    return true;
+    return {access_token:fakeToken,email:user.email,id:Date.now()}
   }
 
   logout(): void {
