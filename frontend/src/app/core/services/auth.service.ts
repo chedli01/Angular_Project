@@ -1,8 +1,9 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { UserSignup } from '../models/user.model';
-import * as bcrypt from 'bcryptjs';
 import { CredentialsDto } from '../../features/auth/login/dto/credentials.dto';
 import { LoginResponseDto } from '../../features/auth/login/dto/login-response.dto';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebase/firebase.config';
 
 export interface ConnectedUser {
   email: string;
@@ -17,62 +18,71 @@ export class AuthService {
   //////////////////////////////////////////////////////////////
   private _user = signal<ConnectedUser | null>(null);
   private _token = signal<string | null>(null);
-  readonly user = this._user as  typeof this._user;
-  readonly token = this._token as  typeof this._token;
+
+  readonly user = this._user;
+  readonly token = this._token;
   readonly isAuthenticated = computed(() => !!this._token());
 
-  private storageKey = 'users';
+  private userKey = 'user';
   private tokenKey = 'token';
 
   constructor() {
-    // restore from localStorage
+    // Restore session from localStorage
     const savedToken = localStorage.getItem(this.tokenKey);
-    const savedUser = localStorage.getItem('user');
+    const savedUser = localStorage.getItem(this.userKey);
+
     if (savedToken && savedUser) {
-      this.token.set(savedToken);
-      this.user.set(JSON.parse(savedUser));
+      this._token.set(savedToken);
+      this._user.set(JSON.parse(savedUser));
     }
   }
 
   //////////////////////////////////////////////////////////////
   async signup(user: UserSignup): Promise<void> {
-    const users: UserSignup[] = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
+    const cred = await createUserWithEmailAndPassword(auth, user.email, user.password);
 
-    if (users.some(u => u.email === user.email)) {
-      return Promise.reject('Email already registered');
-    }
+    const newUser: ConnectedUser = {
+      email: cred.user.email!,
+      id: Date.now(),
+      name: user.name,
+    };
 
-    // hash password before saving
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(user.password, salt);
+    this._user.set(newUser);
 
-    users.push({ ...user, password: hashedPassword });
-    localStorage.setItem(this.storageKey, JSON.stringify(users));
+    localStorage.setItem(this.userKey, JSON.stringify(newUser));
   }
 
+  //////////////////////////////////////////////////////////////
   async login(credentials: CredentialsDto): Promise<LoginResponseDto> {
-    const users: UserSignup[] = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
-    const user = users.find(u => u.email === credentials.email);
+    const cred = await signInWithEmailAndPassword(auth, credentials.email, credentials.password);
 
-    if (!user) return Promise.reject('Invalid email or password');
+    const loggedUser: ConnectedUser = {
+      email: cred.user.email!,
+      id: Date.now(),
+      name: cred.user.displayName ?? '',
+    };
 
-    const passwordMatch = await bcrypt.compare(credentials.password, user.password);
-    if (!passwordMatch) return Promise.reject('Invalid email or password');
+    // Generate a fake token (example for now)
+    const fakeToken = btoa(JSON.stringify({ email: loggedUser.email, id: loggedUser.id }));
 
-    const fakeToken = btoa(JSON.stringify({ email: user.email, id: Date.now() }));
-    this.token.set(fakeToken);
-    this.user.set({ email: user.email, id: Date.now(), name: user.name });
+    this._user.set(loggedUser);
+    this._token.set(fakeToken);
 
+    localStorage.setItem(this.userKey, JSON.stringify(loggedUser));
     localStorage.setItem(this.tokenKey, fakeToken);
-    localStorage.setItem('user', JSON.stringify({ email: user.email, id: Date.now(), name: user.name }));
 
-    return {access_token:fakeToken,email:user.email,id:Date.now()}
+    return {
+      access_token: fakeToken,
+      email: loggedUser.email,
+      id: loggedUser.id,
+    };
   }
 
+  //////////////////////////////////////////////////////////////
   logout(): void {
-    this.token.set(null);
-    this.user.set(null);
+    this._token.set(null);
+    this._user.set(null);
     localStorage.removeItem(this.tokenKey);
-    localStorage.removeItem('user');
+    localStorage.removeItem(this.userKey);
   }
 }
