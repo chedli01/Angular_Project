@@ -12,7 +12,6 @@ import { CommonModule } from '@angular/common';
 })
 export class SignupComponent {
   loading = false;
-  submitted = false;
   form: FormGroup;
 
   constructor(private fb: FormBuilder, private auth: AuthService, private router: Router) {
@@ -24,11 +23,7 @@ export class SignupComponent {
   }
 
   async submit() {
-    this.submitted = true;
     this.loading = true;
-    if (this.form.invalid) {
-      alert('error');
-    }
     try {
       await this.auth.signup(this.form.value as any);
       this.router.navigate(['/login']);
