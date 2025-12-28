@@ -1,19 +1,42 @@
-<div class="summary">
-  <ng-container *ngIf="selectedDay; else empty">
-    <h2>
-      {{ selectedDay | date : 'fullDate' }}
-    </h2>
-
-    <p class="hint">Your activity for this day will appear here.</p>
-
-    <!-- later you plug real data here -->
-  </ng-container>
-
-  <ng-template #empty>
-    <div class="empty">
-      <div class="icon">📅</div>
-      <h3>Select a day</h3>
-      <p>Click on any past day to view your activity summary</p>
+<div *ngIf="selectedDay">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center justify-between mb-1">
+      <h3 class="text-lg font-semibold text-foreground">
+        {{ selectedDay | date : 'EEEE' }}
+      </h3>
+      <button class="text-sm text-muted-foreground hover:text-foreground" (click)="clear()">
+        Clear
+      </button>
     </div>
-  </ng-template>
+    <p class="text-sm text-muted-foreground">
+      {{ selectedDay | date : 'MMMM d, yyyy' }}
+    </p>
+  </div>
+
+  <!-- Completed -->
+  <app-habit-list-section
+    title="Completed"
+    [habits]="completedHabits()"
+    emptyText="No habits completed"
+    [completed]="true"
+  />
+
+  <app-habit-list-section
+    title="Not completed"
+    [habits]="notCompletedHabits()"
+    emptyText="All habits completed!"
+    [completed]="false"
+  />
+
+  <div *ngIf="loading()" class="text-sm italic text-muted-foreground">Loading…</div>
+</div>
+
+<!-- Empty state -->
+<div *ngIf="!selectedDay" class="h-full flex flex-col items-center justify-center text-center">
+  <div class="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-3">📅</div>
+  <p class="text-sm font-medium text-foreground mb-1">Select a day</p>
+  <p class="text-xs text-muted-foreground max-w-[180px]">
+    Click on any past day to view your activity summary
+  </p>
 </div>

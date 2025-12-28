@@ -8,7 +8,10 @@
     </div>
 
     <div class="card">
-      <app-day-summary [selectedDay]="selectedDay"></app-day-summary>
+      <app-day-summary
+        [selectedDay]="selectedDay"
+        (clearRequested)="selectedDay = null"
+      ></app-day-summary>
     </div>
   </div>
 </div>
