@@ -1,88 +1,87 @@
-import { Injectable, signal, computed } from '@angular/core';
-import { UserSignup } from '../models/user.model';
-import { CredentialsDto } from '../../features/auth/login/dto/credentials.dto';
-import { LoginResponseDto } from '../../features/auth/login/dto/login-response.dto';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase/firebase.config';
-
-export interface ConnectedUser {
-  email: string;
-  id: number;
-  name?: string;
-}
+import { Injectable, signal } from '@angular/core';
+import { supabase } from '../supabase/supabase.config';
+import { ConnectedUser, UserSignup } from '../models/user.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  //////////////////////////////////////////////////////////////
-  private _user = signal<ConnectedUser | null>(null);
-  private _token = signal<string | null>(null);
+  readonly user = signal<ConnectedUser | null>(null);
+  readonly isAuthenticated = signal(false);
 
-  readonly user = this._user;
-  readonly token = this._token;
-  readonly isAuthenticated = computed(() => !!this._token());
-
-  private userKey = 'user';
-  private tokenKey = 'token';
+  private initialized = false;
 
   constructor() {
-    // Restore session from localStorage
-    const savedToken = localStorage.getItem(this.tokenKey);
-    const savedUser = localStorage.getItem(this.userKey);
+    supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        this.user.set({
+          id: session.user.id,
+          email: session.user.email!,
+          name: session.user.user_metadata?.['name'] ?? '',
+        });
+        this.isAuthenticated.set(true);
+      } else {
+        this.user.set(null);
+        this.isAuthenticated.set(false);
+      }
+      this.initialized = true;
+    });
+  }
 
-    if (savedToken && savedUser) {
-      this._token.set(savedToken);
-      this._user.set(JSON.parse(savedUser));
+  async waitForSession(): Promise<boolean> {
+    if (this.initialized) {
+      return this.isAuthenticated();
+    }
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (session?.user) {
+      this.user.set({
+        id: session.user.id,
+        email: session.user.email!,
+        name: session.user.user_metadata?.['name'] ?? '',
+      });
+      this.isAuthenticated.set(true);
+    }
+
+    this.initialized = true;
+    return this.isAuthenticated();
+  }
+
+  async signup(data: UserSignup): Promise<void> {
+    const { error } = await supabase.auth.signUp({
+      email: data.email,
+      password: data.password,
+      options: {
+        data: {
+          name: data.name,
+          full_name: data.name,
+        },
+      },
+    });
+
+    if (error) {
+      throw new Error(error.message);
     }
   }
 
-  //////////////////////////////////////////////////////////////
-  async signup(user: UserSignup): Promise<void> {
-    const cred = await createUserWithEmailAndPassword(auth, user.email, user.password);
+  async login(email: string, password: string): Promise<void> {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-    const newUser: ConnectedUser = {
-      email: cred.user.email!,
-      id: Date.now(),
-      name: user.name,
-    };
-
-    this._user.set(newUser);
-
-    localStorage.setItem(this.userKey, JSON.stringify(newUser));
+    if (error) {
+      throw new Error(error.message);
+    }
   }
 
-  //////////////////////////////////////////////////////////////
-  async login(credentials: CredentialsDto): Promise<LoginResponseDto> {
-    const cred = await signInWithEmailAndPassword(auth, credentials.email, credentials.password);
-
-    const loggedUser: ConnectedUser = {
-      email: cred.user.email!,
-      id: Date.now(),
-      name: cred.user.displayName ?? '',
-    };
-
-    // Generate a fake token (example for now)
-    const fakeToken = btoa(JSON.stringify({ email: loggedUser.email, id: loggedUser.id }));
-
-    this._user.set(loggedUser);
-    this._token.set(fakeToken);
-
-    localStorage.setItem(this.userKey, JSON.stringify(loggedUser));
-    localStorage.setItem(this.tokenKey, fakeToken);
-
-    return {
-      access_token: fakeToken,
-      email: loggedUser.email,
-      id: loggedUser.id,
-    };
-  }
-
-  //////////////////////////////////////////////////////////////
-  logout(): void {
-    this._token.set(null);
-    this._user.set(null);
-    localStorage.removeItem(this.tokenKey);
-    localStorage.removeItem(this.userKey);
+  async logout(): Promise<void> {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      throw new Error(error.message);
+    }
   }
 }

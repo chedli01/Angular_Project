@@ -1,5 +1,11 @@
 import { Component } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, Validators, FormControl, FormGroup } from '@angular/forms';
+import {
+  ReactiveFormsModule,
+  FormBuilder,
+  Validators,
+  FormControl,
+  FormGroup,
+} from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { CommonModule } from '@angular/common';
@@ -20,9 +26,18 @@ export class SignupComponent {
 
   constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
     this.form = new FormGroup({
-      name: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.minLength(3)] }),
-      email: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
-      password: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.minLength(6)] }),
+      name: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.required, Validators.minLength(3)],
+      }),
+      email: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.required, Validators.email],
+      }),
+      password: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.required, Validators.minLength(6)],
+      }),
     });
   }
 
@@ -36,8 +51,8 @@ export class SignupComponent {
     try {
       await this.authService.signup(this.form.getRawValue());
       this.router.navigate(['/login']);
-    } catch (err: any) {
-      alert(err);
+    } catch (e: any) {
+      alert(e.message ?? e);
     }
     this.loading = false;
   }
