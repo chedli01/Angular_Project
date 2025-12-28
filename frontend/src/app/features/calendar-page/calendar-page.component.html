@@ -1,0 +1,14 @@
+<div class="page">
+  <h1>Calendar</h1>
+  <p class="subtitle">Review your past activity</p>
+
+  <div class="content">
+    <div class="card">
+      <app-calendar (daySelected)="onDaySelected($event)"></app-calendar>
+    </div>
+
+    <div class="card">
+      <app-day-summary [selectedDay]="selectedDay"></app-day-summary>
+    </div>
+  </div>
+</div>

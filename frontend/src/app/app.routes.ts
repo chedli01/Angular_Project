@@ -28,7 +28,9 @@ export const routes: Routes = [
       {
         path: 'calendar',
         loadComponent: () =>
-          import('./features/calendar/calendar.component').then((m) => m.CalendarComponent),
+          import('./features/calendar-page/calendar-page.component').then(
+            (m) => m.CalendarPageComponent,
+          ),
       },
       { path: '**', redirectTo: 'today' },
     ],

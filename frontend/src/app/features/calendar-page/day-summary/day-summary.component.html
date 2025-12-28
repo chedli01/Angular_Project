@@ -1,0 +1,19 @@
+<div class="summary">
+  <ng-container *ngIf="selectedDay; else empty">
+    <h2>
+      {{ selectedDay | date : 'fullDate' }}
+    </h2>
+
+    <p class="hint">Your activity for this day will appear here.</p>
+
+    <!-- later you plug real data here -->
+  </ng-container>
+
+  <ng-template #empty>
+    <div class="empty">
+      <div class="icon">📅</div>
+      <h3>Select a day</h3>
+      <p>Click on any past day to view your activity summary</p>
+    </div>
+  </ng-template>
+</div>

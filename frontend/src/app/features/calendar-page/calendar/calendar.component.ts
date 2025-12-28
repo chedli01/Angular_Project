@@ -1,6 +1,6 @@
-import { Component, EventEmitter, Output, OnInit } from '@angular/core';
+import { Component, EventEmitter, Output, OnInit, ViewChild } from '@angular/core';
 import { MatCalendar } from '@angular/material/datepicker';
-import { HabitsRepository } from '../../core/data/habits/habits.repository';
+import { HabitsRepository } from '../../../core/data/habits/habits.repository';
 
 @Component({
   selector: 'app-calendar',
@@ -11,6 +11,8 @@ import { HabitsRepository } from '../../core/data/habits/habits.repository';
 })
 export class CalendarComponent implements OnInit {
   @Output() daySelected = new EventEmitter<Date>();
+
+  @ViewChild(MatCalendar) calendar!: MatCalendar<Date>;
 
   private completedByDay: Record<string, number> = {};
 
@@ -30,6 +32,11 @@ export class CalendarComponent implements OnInit {
       value.getFullYear(),
       value.getMonth()
     );
+
+    // Force Angular Material calendar to recompute dateClass
+    queueMicrotask(() => {
+      this.calendar?.updateTodaysDate();
+    });
   }
 
   onDaySelected(date: Date | null) {
@@ -45,7 +52,7 @@ export class CalendarComponent implements OnInit {
     ].join('-');
 
     const count = this.completedByDay[key] ?? 0;
-    console.log(this.completedByDay);
+
     if (count === 0) return '';
     if (count === 1) return 'heat-1';
     if (count === 2) return 'heat-2';
