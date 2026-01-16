@@ -1,0 +1,69 @@
+@if (habit(); as h) {
+  <button
+    class="mb-6 text-muted-foreground hover:text-foreground"
+    (click)="back()"
+  >
+    ← Back
+  </button>
+
+  <!-- Hero section -->
+  <div class="relative mb-10">
+    <div
+      class="absolute left-0 top-0 bottom-0 w-1 rounded-full"
+      [ngClass]="colors()!.bg"
+    ></div>
+
+    <div class="pl-6">
+      <div
+        class="h-16 w-16 rounded-2xl flex items-center justify-center mb-5"
+        [ngClass]="colors()!.light"
+      >
+        <span class="text-3xl">{{ h.icon }}</span>
+      </div>
+
+      <h1 class="text-3xl font-semibold mb-2">
+        {{ h.name }}
+      </h1>
+
+      @if (h.description) {
+        <p class="text-muted-foreground max-w-lg">
+          {{ h.description }}
+        </p>
+      }
+    </div>
+  </div>
+
+  <!-- Progress cards section -->
+  <div class="grid grid-cols-3 gap-3 mb-6">
+    <div class="bg-card rounded-xl p-4 text-center">
+      <div class="text-2xl font-bold">{{ h.completionDates.length }}</div>
+      <div class="text-sm text-muted-foreground">Completions</div>
+    </div>
+    <div class="bg-card rounded-xl p-4 text-center">
+      <div class="text-2xl font-bold">
+        {{ 30 - h.completionDates.length }}
+      </div>
+      <div class="text-sm text-muted-foreground">Missed Days</div>
+    </div>
+    <div class="bg-card rounded-xl p-4 text-center">
+      <div class="text-2xl font-bold">{{ h.completionRate }}%</div>
+      <div class="text-sm text-muted-foreground">Completion Rate</div>
+    </div>
+  </div>
+
+  <!-- Heatmap -->
+  <app-habit-heatmap
+    [completionDates]="h.completionDates"
+    [colorClasses]="colors()!"
+  />
+
+  <!-- Calendar -->
+  <app-habit-month-calendar
+    class="mt-8"
+    [completionDates]="h.completionDates"
+    [colorClasses]="colors()!"
+  />
+}
+@else {
+  <p class="text-muted-foreground">Habit not found</p>
+}
