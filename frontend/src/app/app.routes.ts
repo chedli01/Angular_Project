@@ -4,9 +4,21 @@ import { AuthGuard } from './core/guards/auth.guard';
 import { NoAuthGuard } from './core/guards/no-auth.guard';
 import { LoginComponent } from './features/auth/login/login';
 import { SignupComponent } from './features/auth/signup/signup';
+import { MainLayoutComponent } from './shared/components/layout/main-layout.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent, canActivate: [NoAuthGuard] },
   { path: 'signup', component: SignupComponent, canActivate: [NoAuthGuard] },
-  { path: '**', redirectTo: '' }
+  {
+    path: '',
+    component: MainLayoutComponent,
+    children: [
+      { path: '', redirectTo: 'today', pathMatch: 'full' },
+      { 
+        path: 'today', 
+        loadComponent: () => import('./features/today/pages/today/today').then(m => m.Today)
+      },
+      { path: '**', redirectTo: 'today' }
+    ]
+  }
 ];
