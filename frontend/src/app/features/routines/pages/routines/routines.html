@@ -1,9 +1,12 @@
 <div class="p-8 max-w-4xl mx-auto">
   <h1 class="text-3xl font-bold mb-6">Routines</h1>
 
-  <div class="space-y-3 mb-6">
-    @for (routine of routines(); track routine.id) {
-      <div class="bg-white border rounded-xl p-4 flex items-center gap-4">
+ <div class="space-y-3 mb-6">
+  @for (routine of routines(); track routine.id) {
+    <div
+      class="bg-white border rounded-xl p-4 flex items-center justify-between gap-4"
+    >
+      <div class="flex items-center gap-4">
         <div
           class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
           [style.backgroundColor]="routine.color + '20'"
@@ -16,8 +19,19 @@
           <p class="text-sm text-gray-600">{{ routine.description }}</p>
         </div>
       </div>
-    }
-  </div>
+
+      <!-- Delete button -->
+      <button
+        (click)="deleteRoutine(routine.id)"
+        class="text-red-500 hover:text-red-700 text-xl p-2 rounded-full transition"
+        title="Delete Routine"
+      >
+        🗑️
+      </button>
+    </div>
+  }
+</div>
+
 
   <button
     (click)="openAddDialog()"
