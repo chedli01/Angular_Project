@@ -14,6 +14,8 @@ export class RoutineService {
     const newRoutine: Routine = {
       ...data,
       id: crypto.randomUUID(),
+      color: '#6366F1',
+      icon:'✨',
       completed: false,
       streak: 0,
       createdAt: new Date()

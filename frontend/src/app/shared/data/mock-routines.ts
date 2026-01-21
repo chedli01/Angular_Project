@@ -1,3 +1,4 @@
+import { RoutineType } from '../enums/routineType.enum';
 import { Routine } from '../models/routine.model';
 
 export const MOCK_ROUTINES: Routine[] = [
@@ -9,7 +10,8 @@ export const MOCK_ROUTINES: Routine[] = [
     description: '30 minutes workout',
     completed: false,
     streak: 5,
-    createdAt: new Date('2024-01-01')
+    createdAt: new Date('2024-01-01'),
+    type:RoutineType.Morning
   },
   {
     id: '2',
@@ -19,7 +21,9 @@ export const MOCK_ROUTINES: Routine[] = [
     description: 'Read for 20 minutes',
     completed: true,
     streak: 12,
-    createdAt: new Date('2024-01-01')
+    createdAt: new Date('2024-01-01'),
+    type:RoutineType.Morning
+
   },
   {
     id: '3',
@@ -29,7 +33,9 @@ export const MOCK_ROUTINES: Routine[] = [
     description: '10 minutes mindfulness',
     completed: false,
     streak: 8,
-    createdAt: new Date('2024-01-01')
+    createdAt: new Date('2024-01-01'),
+    type:RoutineType.Morning
+
   },
   {
     id: '4',
@@ -39,7 +45,9 @@ export const MOCK_ROUTINES: Routine[] = [
     description: '8 glasses of water',
     completed: true,
     streak: 20,
-    createdAt: new Date('2024-01-01')
+    createdAt: new Date('2024-01-01'),
+    type:RoutineType.Evening
+
   },
   {
     id: '5',
@@ -49,6 +57,8 @@ export const MOCK_ROUTINES: Routine[] = [
     description: 'Practice for 1 hour',
     completed: false,
     streak: 3,
-    createdAt: new Date('2024-01-01')
+    createdAt: new Date('2024-01-01'),
+    type:RoutineType.Evening
+
   }
 ];

@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { RoutineService } from '@app/core/services/routines.service';
+import { RoutineType } from '@app/shared/enums/routineType.enum';
 
 @Component({
   selector: 'app-routines',
@@ -25,9 +26,8 @@ private routineService = inject(RoutineService);
   createRoutine() {
     this.routineService.addRoutine({
       name: 'New Routine',
-      icon: '✨',
-      color: '#6366F1',
-      description: 'My new routine'
+      description: 'My new routine',
+      type:RoutineType.Morning
     });
 
     console.log('✅ Habit created from Routines');
