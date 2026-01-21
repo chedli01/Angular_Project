@@ -18,6 +18,10 @@ export const routes: Routes = [
         path: 'today', 
         loadComponent: () => import('./features/today/pages/today/today').then(m => m.Today)
       },
+      {
+        path:'routines',
+        loadComponent:()=> import('./features/routines/pages/routines/routines').then(m=>m.Routines)
+      },
       { path: '**', redirectTo: 'today' }
     ]
   }
