@@ -10,10 +10,20 @@ import { RoutineType } from '@app/shared/enums/routineType.enum';
   styleUrl: './routines.css',
 })
 export class Routines {
-private routineService = inject(RoutineService);
+  private routineService = inject(RoutineService);
 
   routines = this.routineService.getRoutines;
   showAddDialog = signal(false);
+
+  // expose enum to template
+  RoutineType = RoutineType;
+
+  // simple form state
+  form = signal({
+    name: '',
+    description: '',
+    type: RoutineType.Morning
+  });
 
   openAddDialog() {
     this.showAddDialog.set(true);
@@ -21,18 +31,36 @@ private routineService = inject(RoutineService);
 
   closeAddDialog() {
     this.showAddDialog.set(false);
+    this.resetForm();
+  }
+
+  resetForm() {
+    this.form.set({
+      name: '',
+      description: '',
+      type: RoutineType.Morning
+    });
   }
 
   createRoutine() {
-    this.routineService.addRoutine({
-      name: 'New Routine',
-      description: 'My new routine',
-      type:RoutineType.Morning
-    });
+    if (!this.form().name.trim()) return;
 
-    console.log('✅ Habit created from Routines');
+    this.routineService.addRoutine(this.form());
+    console.log('✅ Routine created');
+
     this.closeAddDialog();
   }
+  // routines.ts
+updateName(value: string) {
+  this.form.update(f => ({ ...f, name: value }));
+}
 
+updateDescription(value: string) {
+  this.form.update(f => ({ ...f, description: value }));
+}
+
+updateType(value: RoutineType) {
+  this.form.update(f => ({ ...f, type: value }));
+}
 
 }
