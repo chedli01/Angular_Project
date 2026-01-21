@@ -2,37 +2,36 @@
   <h1 class="text-3xl font-bold mb-6">Routine Builder</h1>
   <h4>Group habits into focused routines</h4>
 
- <div class="space-y-3 mb-6">
-  @for (routine of routines(); track routine.id) {
-    <div
-      class="bg-white border rounded-xl p-4 flex items-center justify-between gap-4"
-    >
-      <div class="flex items-center gap-4">
-        <div
-          class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
-          [style.backgroundColor]="routine.color + '20'"
-        >
-          {{ routine.icon }}
-        </div>
-
-        <div>
-          <h3 class="font-semibold">{{ routine.name }}</h3>
-          <p class="text-sm text-gray-600">{{ routine.description }}</p>
-        </div>
-      </div>
-
-      <!-- Delete button -->
-      <button
-        (click)="deleteRoutine(routine.id)"
-        class="text-red-500 hover:text-red-700 text-xl p-2 rounded-full transition"
-        title="Delete Routine"
+  <div class="space-y-3 mb-6">
+    @for (routine of routines(); track routine.id) {
+      <div
+        class="bg-white border rounded-xl p-4 flex items-center justify-between gap-4"
       >
-        🗑️
-      </button>
-    </div>
-  }
-</div>
+        <div class="flex items-center gap-4">
+          <div
+            class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+            [style.backgroundColor]="routine.color + '20'"
+          >
+            {{ routine.icon }}
+          </div>
 
+          <div>
+            <h3 class="font-semibold">{{ routine.name }}</h3>
+            <p class="text-sm text-gray-600">{{ routine.description }}</p>
+          </div>
+        </div>
+
+        <!-- Delete button -->
+        <button
+          (click)="deleteRoutine(routine.id)"
+          class="text-red-500 hover:text-red-700 text-xl p-2 rounded-full transition"
+          title="Delete Routine"
+        >
+          🗑️
+        </button>
+      </div>
+    }
+  </div>
 
   <button
     (click)="openAddDialog()"
@@ -85,42 +84,76 @@
         ></textarea>
       </div>
 
+      <!-- Icon Selection -->
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Icon
+        </label>
+        
+        <!-- Selected icon preview -->
+        <div class="mb-3 p-3 border border-gray-200 rounded-xl flex items-center gap-3">
+          <span class="text-2xl">{{ getSelectedIconEmoji() }}</span>
+          <span class="text-sm text-gray-600">
+            Selected: {{ selectedIconLabel() }}
+          </span>
+        </div>
+
+        <!-- Icon grid -->
+        <div class="grid grid-cols-6 gap-2">
+          @for (icon of iconOptions; track icon.key) {
+            <button
+              type="button"
+              (click)="updateIconKey(icon.key)"
+              [class.border-blue-500]="form().iconKey === icon.key"
+              [class.border-gray-200]="form().iconKey !== icon.key"
+              [class.bg-blue-50]="form().iconKey === icon.key"
+              class="p-3 border-2 rounded-xl hover:bg-gray-50 transition-all
+                     flex flex-col items-center justify-center gap-1"
+              title="{{ icon.label }}"
+            >
+              <span class="text-2xl">{{ icon.emoji }}</span>
+              @if (form().iconKey === icon.key) {
+                <span class="text-xs text-blue-600 font-medium">✓</span>
+              }
+            </button>
+          }
+        </div>
+      </div>
+
       <!-- Type -->
-     <!-- Type -->
-<div class="mb-6">
-  <label class="block text-sm font-medium text-gray-700 mb-1">
-    Routine Type
-  </label>
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Routine Type
+        </label>
 
-  <div class="relative">
-    <!-- Icon -->
-    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-xl pointer-events-none">
-      {{ form().type === RoutineType.Morning ? '🌅' : '🌙' }}
-    </span>
+        <div class="relative">
+          <!-- Icon -->
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-xl pointer-events-none">
+            {{ form().type === RoutineType.Morning ? '🌅' : '🌙' }}
+          </span>
 
-    <!-- Select -->
-    <select
-      class="w-full appearance-none border border-gray-300 rounded-xl
-             pl-12 pr-10 py-3 bg-white
-             focus:outline-none focus:ring-2 focus:ring-blue-500
-             cursor-pointer"
-      [value]="form().type"
-      (change)="updateType($any($event.target).value)"
-    >
-      <option [value]="RoutineType.Morning"> Morning</option>
-      <option [value]="RoutineType.Evening"> Evening</option>
-    </select>
+          <!-- Select -->
+          <select
+            class="w-full appearance-none border border-gray-300 rounded-xl
+                   pl-12 pr-10 py-3 bg-white
+                   focus:outline-none focus:ring-2 focus:ring-blue-500
+                   cursor-pointer"
+            [value]="form().type"
+            (change)="updateType($any($event.target).value)"
+          >
+            <option [value]="RoutineType.Morning">Morning</option>
+            <option [value]="RoutineType.Evening">Evening</option>
+          </select>
 
-    <!-- Arrow -->
-    <span
-      class="absolute right-4 top-1/2 -translate-y-1/2
-             text-gray-400 pointer-events-none"
-    >
-      ▾
-    </span>
-  </div>
-</div>
-
+          <!-- Arrow -->
+          <span
+            class="absolute right-4 top-1/2 -translate-y-1/2
+                   text-gray-400 pointer-events-none"
+          >
+            ▾
+          </span>
+        </div>
+      </div>
 
       <!-- Actions -->
       <div class="flex gap-3">

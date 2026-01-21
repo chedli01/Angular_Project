@@ -1,13 +1,13 @@
+import { IconKey } from "../enums/iconKey.enum";
 import { RoutineType } from "../enums/routineType.enum";
 
 export interface Routine {
   id: string;
   name: string;
   icon: string;
+  iconKey:IconKey
   color: string;
   description?: string;
-  completed: boolean;
-  streak: number;
   createdAt: Date;
   type:RoutineType
 }
@@ -15,5 +15,6 @@ export interface Routine {
 export interface RoutineFormData {
   name: string;
   description?: string;
-  type:RoutineType
+  type:RoutineType;
+  iconKey: IconKey;
 }

@@ -1,6 +1,7 @@
-import { Component, inject, signal, effect } from '@angular/core';
+import { Component, inject, signal, effect, computed } from '@angular/core';
 import { RoutineService } from '@app/core/services/routines.service'; 
 import { RoutineType } from '@app/shared/enums/routineType.enum';
+import { IconKey } from '@app/shared/enums/iconKey.enum';
 import { Routine } from '@app/shared/models/routine.model';
 
 @Component({
@@ -13,17 +14,27 @@ export class Routines {
 
   routines = signal<Routine[]>([]);
   showAddDialog = signal(false);
+  
+  // Use a computed property for icon options
+  iconOptions = this.routineService.getIconOptions();
+
+  // Add a computed property for selected icon label
+  selectedIconLabel = computed(() => {
+    const selectedIcon = this.iconOptions.find(opt => opt.key === this.form().iconKey);
+    return selectedIcon ? selectedIcon.label : 'Star';
+  });
 
   RoutineType = RoutineType;
+  IconKey = IconKey;
 
   form = signal({
     name: '',
     description: '',
     type: RoutineType.Morning,
+    iconKey: IconKey.Star,
   });
 
   constructor() {
-    // auto-update routines signal whenever service emits
     effect(() => {
       this.routineService.routines$.subscribe((r) => this.routines.set(r));
     });
@@ -43,6 +54,7 @@ export class Routines {
       name: '',
       description: '',
       type: RoutineType.Morning,
+      iconKey: IconKey.Star,
     });
   }
 
@@ -63,6 +75,15 @@ export class Routines {
 
   updateType(value: RoutineType) {
     this.form.update((f) => ({ ...f, type: value }));
+  }
+
+  updateIconKey(value: string) {
+    // Convert string to IconKey enum
+    this.form.update((f) => ({ ...f, iconKey: value as IconKey }));
+  }
+
+  getSelectedIconEmoji(): string {
+    return this.routineService.getIconForKey(this.form().iconKey);
   }
 
   async deleteRoutine(id: string) {

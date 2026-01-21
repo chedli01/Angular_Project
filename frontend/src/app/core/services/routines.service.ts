@@ -3,6 +3,8 @@ import { BehaviorSubject, from } from 'rxjs';
 import { supabase } from '../supabase/supabase.config';
 import { Routine, RoutineFormData } from '@app/shared/models/routine.model';
 import { AuthService } from './auth.service';
+import { IconKey } from '@app/shared/enums/iconKey.enum'; 
+import { ICON_MAP } from '@app/shared/constants/iconMap';
 
 @Injectable({
   providedIn: 'root',
@@ -11,19 +13,36 @@ export class RoutineService {
   private routinesSubject = new BehaviorSubject<Routine[]>([]);
   routines$ = this.routinesSubject.asObservable();
 
+  
   constructor(private auth: AuthService) {
-    // Automatically fetch routines when the user logs in
     effect(() => {
       const userId = this.auth.userId();
       if (userId) {
         this.loadRoutines(userId);
       } else {
-        this.routinesSubject.next([]); // clear routines if logged out
+        this.routinesSubject.next([]);
       }
     });
   }
 
-  /** Load routines for a given user */
+  /** Get emoji for icon key */
+  getIconForKey(iconKey: IconKey): string {
+    return ICON_MAP[iconKey] || '✨';
+  }
+
+  /** Get all icon options for UI */
+  getIconOptions(): { key: IconKey; emoji: string; label: string }[] {
+    return Object.entries(IconKey).map(([label, key]) => ({
+      key: key as IconKey,
+      emoji: this.getIconForKey(key as IconKey),
+      label: this.formatLabel(label)
+    }));
+  }
+
+  private formatLabel(label: string): string {
+    return label.replace(/([A-Z])/g, ' $1').trim();
+  }
+
   private loadRoutines(userId: string) {
     from(
       supabase
@@ -43,10 +62,9 @@ export class RoutineService {
             name: r.name,
             description: r.description,
             type: r.preferred_time as any,
-            color: '#6366F1',
-            icon: '✨',
-            completed: false,
-            streak: 0,
+            iconKey: r.icon_key as IconKey || IconKey.Star,
+            icon: this.getIconForKey(r.icon_key as IconKey || IconKey.Star),
+            color: r.color || '#6366F1',
             createdAt: new Date(r.created_at),
           }))
         );
@@ -54,7 +72,6 @@ export class RoutineService {
     });
   }
 
-  /** Add routine */
   async addRoutine(formData: RoutineFormData) {
     const userId = this.auth.userId();
     if (!userId) throw new Error('User not authenticated');
@@ -62,10 +79,9 @@ export class RoutineService {
     const newRoutine: Routine = {
       ...formData,
       id: crypto.randomUUID(),
+      iconKey: formData.iconKey || IconKey.Star,
+      icon: this.getIconForKey(formData.iconKey || IconKey.Star),
       color: '#6366F1',
-      icon: '✨',
-      completed: false,
-      streak: 0,
       createdAt: new Date(),
     };
 
@@ -78,7 +94,7 @@ export class RoutineService {
           name: newRoutine.name,
           description: newRoutine.description,
           preferred_time: newRoutine.type,
-          active: true,
+          icon_key: newRoutine.iconKey,
           created_at: newRoutine.createdAt,
         },
       ])
@@ -94,7 +110,6 @@ export class RoutineService {
     return newRoutine;
   }
 
-  /** Delete routine */
   async deleteRoutine(id: string) {
     const { error } = await supabase.from('routines').delete().eq('id', id);
 
