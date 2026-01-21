@@ -1,5 +1,5 @@
-import { inject, Injectable, signal } from '@angular/core';
-import { BehaviorSubject, from, switchMap, tap } from 'rxjs';
+import { Injectable, effect } from '@angular/core';
+import { BehaviorSubject, from } from 'rxjs';
 import { supabase } from '../supabase/supabase.config';
 import { Routine, RoutineFormData } from '@app/shared/models/routine.model';
 import { AuthService } from './auth.service';
@@ -12,48 +12,51 @@ export class RoutineService {
   routines$ = this.routinesSubject.asObservable();
 
   constructor(private auth: AuthService) {
-    this.loadRoutines();
+    // Automatically fetch routines when the user logs in
+    effect(() => {
+      const userId = this.auth.userId();
+      if (userId) {
+        this.loadRoutines(userId);
+      } else {
+        this.routinesSubject.next([]); // clear routines if logged out
+      }
+    });
   }
 
-  /** Load routines for the logged-in user */
-  loadRoutines() {
-    const userId = this.auth.userId();
-    if (!userId) return;
-
+  /** Load routines for a given user */
+  private loadRoutines(userId: string) {
     from(
       supabase
         .from('routines')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
-    )
-      .pipe(
-        tap(({ data, error }) => {
-          if (error) {
-            console.error('❌ Supabase get routines failed', error);
-            return;
-          }
-          this.routinesSubject.next(
-            data.map((r: any) => ({
-              id: r.id,
-              name: r.name,
-              description: r.description,
-              type: r.preferred_time as any,
-              color: '#6366F1',
-              icon: '✨',
-              completed: false,
-              streak: 0,
-              createdAt: new Date(r.created_at),
-            }))
-          );
-        })
-      )
-      .subscribe();
+    ).subscribe(({ data, error }) => {
+      if (error) {
+        console.error('❌ Supabase get routines failed', error);
+        return;
+      }
+      if (data) {
+        this.routinesSubject.next(
+          data.map((r: any) => ({
+            id: r.id,
+            name: r.name,
+            description: r.description,
+            type: r.preferred_time as any,
+            color: '#6366F1',
+            icon: '✨',
+            completed: false,
+            streak: 0,
+            createdAt: new Date(r.created_at),
+          }))
+        );
+      }
+    });
   }
 
   /** Add routine */
   async addRoutine(formData: RoutineFormData) {
-    const userId = 'a950de46-72b1-48c8-8b16-238af95da812';
+    const userId = this.auth.userId();
     if (!userId) throw new Error('User not authenticated');
 
     const newRoutine: Routine = {
@@ -87,7 +90,6 @@ export class RoutineService {
       throw error;
     }
 
-    // Update UI
     this.routinesSubject.next([...this.routinesSubject.value, newRoutine]);
     return newRoutine;
   }
@@ -101,13 +103,11 @@ export class RoutineService {
       throw error;
     }
 
-    // Update UI
     this.routinesSubject.next(
       this.routinesSubject.value.filter((r) => r.id !== id)
     );
   }
 
-  /** Optional: get single routine */
   getRoutineById(id: string): Routine | undefined {
     return this.routinesSubject.value.find((r) => r.id === id);
   }
