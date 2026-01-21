@@ -1,1 +1,64 @@
-<p>routines works!</p>
+<!-- src/app/features/routines/pages/routines/routines.html -->
+
+<div class="p-8 max-w-4xl mx-auto">
+  <h1 class="text-3xl font-bold mb-6">Routines</h1>
+
+  <div class="space-y-3 mb-6">
+    @for (routine of routines(); track routine.id) {
+      <div class="bg-white border rounded-xl p-4 flex items-center gap-4">
+        <div
+          class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+          [style.backgroundColor]="routine.color + '20'"
+        >
+          {{ routine.icon }}
+        </div>
+
+        <div>
+          <h3 class="font-semibold">{{ routine.name }}</h3>
+          <p class="text-sm text-gray-600">{{ routine.description }}</p>
+        </div>
+      </div>
+    }
+  </div>
+
+  <button
+    (click)="openAddDialog()"
+    class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+  >
+    ➕ Create Routine
+  </button>
+</div>
+
+@if (showAddDialog()) {
+  <div
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+    (click)="closeAddDialog()"
+  >
+    <div
+      class="bg-white rounded-xl p-6 w-full max-w-md"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 class="text-xl font-bold mb-4">Create Routine</h2>
+
+      <p class="text-gray-600 mb-6">
+        This is a simple demo creation like Today page.
+      </p>
+
+      <div class="flex gap-3">
+        <button
+          (click)="closeAddDialog()"
+          class="flex-1 border rounded-lg py-2"
+        >
+          Cancel
+        </button>
+
+        <button
+          (click)="createRoutine()"
+          class="flex-1 bg-blue-600 text-white rounded-lg py-2"
+        >
+          Create
+        </button>
+      </div>
+    </div>
+  </div>
+}
