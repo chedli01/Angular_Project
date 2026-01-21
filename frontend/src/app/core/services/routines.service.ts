@@ -1,53 +1,114 @@
-import { Injectable, signal } from '@angular/core';
-import { MOCK_ROUTINES } from '@app/shared/data/mock-routines';
+import { inject, Injectable, signal } from '@angular/core';
+import { BehaviorSubject, from, switchMap, tap } from 'rxjs';
+import { supabase } from '../supabase/supabase.config';
 import { Routine, RoutineFormData } from '@app/shared/models/routine.model';
+import { AuthService } from './auth.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class RoutineService {
-  private routines = signal<Routine[]>(MOCK_ROUTINES);
+  private routinesSubject = new BehaviorSubject<Routine[]>([]);
+  routines$ = this.routinesSubject.asObservable();
 
-  getRoutines = this.routines.asReadonly();
+  constructor(private auth: AuthService) {
+    this.loadRoutines();
+  }
 
-  addRoutine(data: RoutineFormData): Routine {
+  /** Load routines for the logged-in user */
+  loadRoutines() {
+    const userId = this.auth.userId();
+    if (!userId) return;
+
+    from(
+      supabase
+        .from('routines')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+    )
+      .pipe(
+        tap(({ data, error }) => {
+          if (error) {
+            console.error('❌ Supabase get routines failed', error);
+            return;
+          }
+          this.routinesSubject.next(
+            data.map((r: any) => ({
+              id: r.id,
+              name: r.name,
+              description: r.description,
+              type: r.preferred_time as any,
+              color: '#6366F1',
+              icon: '✨',
+              completed: false,
+              streak: 0,
+              createdAt: new Date(r.created_at),
+            }))
+          );
+        })
+      )
+      .subscribe();
+  }
+
+  /** Add routine */
+  async addRoutine(formData: RoutineFormData) {
+    const userId = 'a950de46-72b1-48c8-8b16-238af95da812';
+    if (!userId) throw new Error('User not authenticated');
+
     const newRoutine: Routine = {
-      ...data,
+      ...formData,
       id: crypto.randomUUID(),
       color: '#6366F1',
-      icon:'✨',
+      icon: '✨',
       completed: false,
       streak: 0,
-      createdAt: new Date()
+      createdAt: new Date(),
     };
-    
-    this.routines.update(routines => [...routines, newRoutine]);
+
+    const { data, error } = await supabase
+      .from('routines')
+      .insert([
+        {
+          id: newRoutine.id,
+          user_id: userId,
+          name: newRoutine.name,
+          description: newRoutine.description,
+          preferred_time: newRoutine.type,
+          active: true,
+          created_at: newRoutine.createdAt,
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Supabase insert failed', error);
+      throw error;
+    }
+
+    // Update UI
+    this.routinesSubject.next([...this.routinesSubject.value, newRoutine]);
     return newRoutine;
   }
 
-  toggleCompletion(id: string) {
-    this.routines.update(routines =>
-      routines.map(h => h.id === id 
-        ? { 
-            ...h, 
-            completed: !h.completed,
-            streak: !h.completed ? h.streak + 1 : h.streak
-          }
-        : h
-      )
+  /** Delete routine */
+  async deleteRoutine(id: string) {
+    const { error } = await supabase.from('routines').delete().eq('id', id);
+
+    if (error) {
+      console.error('❌ Supabase delete failed', error);
+      throw error;
+    }
+
+    // Update UI
+    this.routinesSubject.next(
+      this.routinesSubject.value.filter((r) => r.id !== id)
     );
   }
 
-  deleteRoutine(id: string) {
-    this.routines.update(routines => routines.filter(r => r.id !== id));
-  }
-
+  /** Optional: get single routine */
   getRoutineById(id: string): Routine | undefined {
-    return this.routines().find(r => r.id === id);
-  }
-
-  // testing purpose
-  resetToMockData() {
-    this.routines.set([...MOCK_ROUTINES]);
+    return this.routinesSubject.value.find((r) => r.id === id);
   }
 }

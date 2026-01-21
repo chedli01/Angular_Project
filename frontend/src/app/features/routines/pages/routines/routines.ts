@@ -1,29 +1,33 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
-import { RoutineService } from '@app/core/services/routines.service';
+import { Component, inject, signal, effect } from '@angular/core';
+import { RoutineService } from '@app/core/services/routines.service'; 
 import { RoutineType } from '@app/shared/enums/routineType.enum';
+import { Routine } from '@app/shared/models/routine.model';
 
 @Component({
   selector: 'app-routines',
-  imports: [CommonModule],
   templateUrl: './routines.html',
-  styleUrl: './routines.css',
+  styleUrls: ['./routines.css'],
 })
 export class Routines {
   private routineService = inject(RoutineService);
 
-  routines = this.routineService.getRoutines;
+  routines = signal<Routine[]>([]);
   showAddDialog = signal(false);
 
-  // expose enum to template
   RoutineType = RoutineType;
 
-  // simple form state
   form = signal({
     name: '',
     description: '',
-    type: RoutineType.Morning
+    type: RoutineType.Morning,
   });
+
+  constructor() {
+    // auto-update routines signal whenever service emits
+    effect(() => {
+      this.routineService.routines$.subscribe((r) => this.routines.set(r));
+    });
+  }
 
   openAddDialog() {
     this.showAddDialog.set(true);
@@ -38,29 +42,30 @@ export class Routines {
     this.form.set({
       name: '',
       description: '',
-      type: RoutineType.Morning
+      type: RoutineType.Morning,
     });
   }
 
-  createRoutine() {
+  async createRoutine() {
     if (!this.form().name.trim()) return;
 
-    this.routineService.addRoutine(this.form());
-    console.log('✅ Routine created');
-
+    await this.routineService.addRoutine(this.form());
     this.closeAddDialog();
   }
-  // routines.ts
-updateName(value: string) {
-  this.form.update(f => ({ ...f, name: value }));
-}
 
-updateDescription(value: string) {
-  this.form.update(f => ({ ...f, description: value }));
-}
+  updateName(value: string) {
+    this.form.update((f) => ({ ...f, name: value }));
+  }
 
-updateType(value: RoutineType) {
-  this.form.update(f => ({ ...f, type: value }));
-}
+  updateDescription(value: string) {
+    this.form.update((f) => ({ ...f, description: value }));
+  }
 
+  updateType(value: RoutineType) {
+    this.form.update((f) => ({ ...f, type: value }));
+  }
+
+  async deleteRoutine(id: string) {
+    await this.routineService.deleteRoutine(id);
+  }
 }
