@@ -1,6 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { supabase } from '../supabase/supabase.config';
-import { ConnectedUser, UserSignup } from '../models/user.model';
+import { ConnectedUser, UserSignup } from '../../shared/models/user.model';
 
 @Injectable({
   providedIn: 'root',
