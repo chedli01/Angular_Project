@@ -2,11 +2,12 @@ import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { SettingsComponent } from './settings-component/settings-component';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule,SettingsComponent],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.css'
 })
@@ -15,6 +16,7 @@ export class SidebarComponent {
   
   isCollapsed = signal(false);
   isMobileOpen = signal(false);
+  isSettingsOpen = signal(false);
 
   // Get current user from auth service
   currentUser = this.authService.user;
@@ -38,4 +40,13 @@ export class SidebarComponent {
   closeMobileSidebar() {
     this.isMobileOpen.set(false);
   }
+
+  toggleSettings() {
+    this.isSettingsOpen.update(v => !v);
+  }
+
+  closeSettings() {
+    this.isSettingsOpen.set(false);
+  }
+
 }
