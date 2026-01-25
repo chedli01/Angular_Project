@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideAngularModule } from 'lucide-angular';
 
 export type Habit = {
   id: string;
@@ -11,7 +12,7 @@ export type Habit = {
 @Component({
   selector: 'app-habit-list-section',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LucideAngularModule],
   templateUrl: './habit-list-section.component.html',
 })
 export class HabitListSectionComponent {

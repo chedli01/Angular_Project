@@ -1,6 +1,16 @@
-import { Component, EventEmitter, Output, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Output,
+  OnInit,
+  ViewChild,
+  AfterViewInit,
+  Input,
+  signal,
+} from '@angular/core';
 import { MatCalendar } from '@angular/material/datepicker';
 import { HabitsRepository } from '../../../core/data/habits/habits.repository';
+import { Subscription } from 'rxjs/internal/Subscription';
 
 @Component({
   selector: 'app-calendar',
@@ -9,38 +19,37 @@ import { HabitsRepository } from '../../../core/data/habits/habits.repository';
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss'],
 })
-export class CalendarComponent implements OnInit {
+export class CalendarComponent implements AfterViewInit {
+  @Input() selectedDay: Date | null = null;
   @Output() daySelected = new EventEmitter<Date>();
-
   @ViewChild(MatCalendar) calendar!: MatCalendar<Date>;
-
+  private _sub!: Subscription;
   private completedByDay: Record<string, number> = {};
 
   constructor(private habitsRepo: HabitsRepository) {}
 
-  async ngOnInit() {
-    const today = new Date();
-    await this.loadMonth(today);
+  async ngAfterViewInit() {
+    this._sub = this.calendar.stateChanges.subscribe(() => {
+      this.loadMonth(this.calendar.activeDate);
+    });
+    await this.loadMonth(new Date());
   }
 
   async loadMonth(value: unknown) {
     if (!(value instanceof Date)) {
       return;
     }
-
     this.completedByDay = await this.habitsRepo.getCompletedHabitsCountForMonth(
       value.getFullYear(),
-      value.getMonth()
+      value.getMonth(),
     );
 
-    // Force Angular Material calendar to recompute dateClass
-    queueMicrotask(() => {
-      this.calendar?.updateTodaysDate();
-    });
+    this.calendar?.updateTodaysDate();
   }
 
   onDaySelected(date: Date | null) {
     if (!date) return;
+    if (date.getTime() === this.selectedDay?.getTime()) return;
     this.daySelected.emit(date);
   }
 
@@ -59,4 +68,8 @@ export class CalendarComponent implements OnInit {
     if (count === 3) return 'heat-3';
     return 'heat-4';
   };
+
+  ngOnDestroy() {
+    this._sub?.unsubscribe();
+  }
 }

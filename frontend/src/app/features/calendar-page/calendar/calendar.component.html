@@ -1,9 +1,5 @@
 <div class="calendar-wrapper">
-  <mat-calendar
-    [dateClass]="dateClass"
-    (selectedChange)="onDaySelected($event)"
-    (activeDateChange)="loadMonth($event)"
-  ></mat-calendar>
+  <mat-calendar [dateClass]="dateClass" (selectedChange)="onDaySelected($event)"></mat-calendar>
 </div>
 
 <div class="legend">

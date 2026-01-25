@@ -4,7 +4,7 @@
 
   <div class="content">
     <div class="card">
-      <app-calendar (daySelected)="onDaySelected($event)"></app-calendar>
+      <app-calendar [selectedDay]="selectedDay" (daySelected)="onDaySelected($event)"></app-calendar>
     </div>
 
     <div class="card">

@@ -14,7 +14,7 @@ export type Habit = {
 export class HabitsRepository {
   async getCompletedHabitsCountForMonth(
     year: number,
-    month: number
+    month: number,
   ): Promise<Record<string, number>> {
     const from = new Date(year, month, 1).toISOString().slice(0, 10);
     const to = new Date(year, month + 1, 0).toISOString().slice(0, 10);
@@ -26,7 +26,7 @@ export class HabitsRepository {
       .gte('date', from)
       .lte('date', to);
 
-    console.log('Supabase rows:', data, 'error:', error);
+    console.log('Getting completed habits from', from, 'to', to);
     if (error) throw error;
 
     const map: Record<string, number> = {};
@@ -39,8 +39,6 @@ export class HabitsRepository {
   }
 
   async getCompletedHabitsForDay(date: string): Promise<Habit[]> {
-    // relies on FK relationship habit_completions.habit_id -> habits.id
-    // and uses Supabase nested select
     const { data, error } = await supabase
       .from('habit_completions')
       .select(
@@ -53,7 +51,7 @@ export class HabitsRepository {
           color,
           created_at
         )
-      `
+      `,
       )
       .eq('date', date)
       .eq('completed', true);
@@ -61,7 +59,7 @@ export class HabitsRepository {
     if (error) throw error;
 
     // data is array of { habits: Habit | null }
-    console.log('Supabase rows:', data, 'error:', error);
+    console.log('Getting completed habits for day', date, ':', data, 'error:', error);
     return (data ?? [])
       .map((row: any) => row.habits as Habit | null)
       .filter((h: Habit | null): h is Habit => !!h);
@@ -79,8 +77,6 @@ export class HabitsRepository {
 
     const completedIds = (completedRows ?? []).map((r: any) => r.habit_id);
 
-    // Fetch all habits, excluding completed ones
-    // If completedIds is empty, just return all habits
     let query = supabase.from('habits').select('id, name, description, icon, color, created_at');
 
     if (completedIds.length > 0) {
@@ -90,7 +86,14 @@ export class HabitsRepository {
     const { data: notCompleted, error: habitsErr } = await query;
 
     if (habitsErr) throw habitsErr;
-    console.log('Supabase rows:', notCompleted, 'error:', habitsErr);
+    console.log(
+      'Getting not completed habits for day',
+      date,
+      ':',
+      notCompleted,
+      'error:',
+      habitsErr,
+    );
 
     return (notCompleted ?? []) as Habit[];
   }

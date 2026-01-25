@@ -2,16 +2,15 @@ import { Component, Input, Output, EventEmitter, signal, effect } from '@angular
 import { CommonModule } from '@angular/common';
 import { HabitListSectionComponent } from './habit-list/habit-list-section.component';
 import { HabitsRepository, Habit } from '../../../core/data/habits/habits.repository';
-
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 @Component({
   selector: 'app-day-summary',
   standalone: true,
-  imports: [CommonModule, HabitListSectionComponent],
+  imports: [CommonModule, HabitListSectionComponent, MatProgressSpinner],
   templateUrl: './day-summary.component.html',
   styleUrls: ['./day-summary.component.scss'],
 })
 export class DaySummaryComponent {
-  // input → signal
   private selectedDaySig = signal<Date | null>(null);
 
   @Input()
