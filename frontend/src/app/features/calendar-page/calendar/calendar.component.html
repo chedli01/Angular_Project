@@ -1,0 +1,12 @@
+<div class="calendar-wrapper">
+  <mat-calendar [dateClass]="dateClass" (selectedChange)="onDaySelected($event)"></mat-calendar>
+</div>
+
+<div class="legend">
+  <span>Less</span>
+  <div class="box low"></div>
+  <div class="box mid"></div>
+  <div class="box high"></div>
+  <div class="box full"></div>
+  <span>More</span>
+</div>
