@@ -1,17 +1,18 @@
 <div
-  class="border rounded-xl p-6 relative transition-colors"
+  class="border rounded-xl p-6 relative transition-colors flex flex-col"
   [class.bg-white]="routine().active"
   [class.bg-gray-100]="!routine().active"
   [class.opacity-75]="!routine().active"
   (clickOutside)="closeMenu()"
 >
   <!-- Header with title and menu button -->
-  <div class="flex items-start justify-between gap-4 mb-3">
+  <div class="flex items-start justify-between gap-4 mb-4">
     <div class="flex-1">
-      <h3 class="text-xl font-bold mb-2">{{ routine().name }}</h3>
+      <h3 class="text-2xl font-bold mb-3">{{ routine().name }}</h3>
+      <h4>{{routine().type}}</h4>
       
       <!-- Active/Inactive Toggle -->
-      <div class="flex items-center gap-3 mb-2">
+      <div class="flex items-center gap-3">
         <label class="flex items-center gap-2 cursor-pointer group">
           <div class="relative">
             <input
@@ -41,7 +42,7 @@
     </div>
 
     <!-- Three-dot menu button -->
-    <div class="relative">
+    <div class="relative flex-shrink-0">
       <button
         (click)="toggleMenu()"
         class="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition"
@@ -74,6 +75,8 @@
     </div>
   </div>
 
-  <!-- Description -->
-  <p class="text-gray-600 leading-relaxed">{{ routine().description }}</p>
+  <!-- Description - flex-grow pushes it to fill available space -->
+  <div class="flex-grow flex items-center">
+    <p class="text-gray-600 leading-relaxed text-base">{{ routine().description }}</p>
+  </div>
 </div>
