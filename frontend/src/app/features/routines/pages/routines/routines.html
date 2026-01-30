@@ -8,16 +8,12 @@
         class="bg-white border rounded-xl p-4 flex items-center justify-between gap-4"
       >
         <div class="flex items-center gap-4">
-          <div
-            class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
-            [style.backgroundColor]="routine.color + '20'"
-          >
-            {{ routine.icon }}
-          </div>
+    
 
           <div>
             <h3 class="font-semibold">{{ routine.name }}</h3>
             <p class="text-sm text-gray-600">{{ routine.description }}</p>
+            <p class="text-sm text-gray-600">@if(routine.active==true){active}@else{inactive}</p>
           </div>
         </div>
 
