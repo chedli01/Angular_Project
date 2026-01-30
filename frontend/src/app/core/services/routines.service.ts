@@ -3,8 +3,6 @@ import { BehaviorSubject, from } from 'rxjs';
 import { supabase } from '../supabase/supabase.config';
 import { Routine, RoutineFormData } from '@app/shared/models/routine.model';
 import { AuthService } from './auth.service';
-import { IconKey } from '@app/shared/enums/iconKey.enum'; 
-import { ICON_MAP } from '@app/shared/constants/iconMap';
 
 @Injectable({
   providedIn: 'root',
@@ -25,23 +23,10 @@ export class RoutineService {
     });
   }
 
-  /** Get emoji for icon key */
-  getIconForKey(iconKey: IconKey): string {
-    return ICON_MAP[iconKey] || '✨';
-  }
+ 
 
-  /** Get all icon options for UI */
-  getIconOptions(): { key: IconKey; emoji: string; label: string }[] {
-    return Object.entries(IconKey).map(([label, key]) => ({
-      key: key as IconKey,
-      emoji: this.getIconForKey(key as IconKey),
-      label: this.formatLabel(label)
-    }));
-  }
 
-  private formatLabel(label: string): string {
-    return label.replace(/([A-Z])/g, ' $1').trim();
-  }
+
 
   private loadRoutines(userId: string) {
     from(
@@ -62,9 +47,7 @@ export class RoutineService {
             name: r.name,
             description: r.description,
             type: r.preferred_time as any,
-            iconKey: r.icon_key as IconKey || IconKey.Star,
-            icon: this.getIconForKey(r.icon_key as IconKey || IconKey.Star),
-            color: r.color || '#6366F1',
+            active:r.active,
             createdAt: new Date(r.created_at),
           }))
         );
@@ -79,9 +62,7 @@ export class RoutineService {
     const newRoutine: Routine = {
       ...formData,
       id: crypto.randomUUID(),
-      iconKey: formData.iconKey || IconKey.Star,
-      icon: this.getIconForKey(formData.iconKey || IconKey.Star),
-      color: '#6366F1',
+      active:true,
       createdAt: new Date(),
     };
 
@@ -94,7 +75,8 @@ export class RoutineService {
           name: newRoutine.name,
           description: newRoutine.description,
           preferred_time: newRoutine.type,
-          icon_key: newRoutine.iconKey,
+          custom_time_text:newRoutine.custom_time_text,
+          active:newRoutine.active,
           created_at: newRoutine.createdAt,
         },
       ])

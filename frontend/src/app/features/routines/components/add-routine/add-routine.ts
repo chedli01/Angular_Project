@@ -1,7 +1,6 @@
 import { Component, inject, signal, computed, output } from '@angular/core';
 import { RoutineService } from '@app/core/services/routines.service';
 import { RoutineType } from '@app/shared/enums/routineType.enum';
-import { IconKey } from '@app/shared/enums/iconKey.enum';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -18,21 +17,18 @@ export class AddRoutine {
   routineCreated = output<void>();
 
   // Form state
-  form = signal({
-    name: '',
-    description: '',
-    type: RoutineType.Morning,
-    iconKey: IconKey.Star,
-  });
+ form = signal({
+  name: '',
+  description: '',
+  type: RoutineType.Morning,
+  custom_time_text: '',
+  active: true
+});
+
 
   // Constants and Helpers
   RoutineType = RoutineType;
-  iconOptions = this.routineService.getIconOptions();
 
-  selectedIconLabel = computed(() => {
-    const selectedIcon = this.iconOptions.find(opt => opt.key === this.form().iconKey);
-    return selectedIcon ? selectedIcon.label : 'Star';
-  });
 
   updateName(value: string) {
     this.form.update((f) => ({ ...f, name: value }));
@@ -43,16 +39,18 @@ export class AddRoutine {
   }
 
   updateType(value: RoutineType) {
-    this.form.update((f) => ({ ...f, type: value }));
-  }
+  this.form.update((f) => ({
+    ...f,
+    type: value,
+    custom_time_text: value === RoutineType.Custom ? f.custom_time_text : ''
+  }));
+}
+updateCustomType(value: string) {
+  this.form.update((f) => ({ ...f, custom_time_text: value }));
+}
 
-  updateIconKey(value: string) {
-    this.form.update((f) => ({ ...f, iconKey: value as IconKey }));
-  }
+ 
 
-  getSelectedIconEmoji(): string {
-    return this.routineService.getIconForKey(this.form().iconKey);
-  }
 
   async createRoutine() {
     if (!this.form().name.trim()) return;
