@@ -111,20 +111,48 @@ export class RoutineService {
     }
 
     // Update local state
-    const updatedRoutines = this.routinesSubject.value.map((r) =>
-      r.id === id
+    const updatedRoutines = this.routinesSubject.value.map((routine) =>
+      routine.id === id
         ? {
-            ...r,
+            ...routine,
             name: formData.name,
             description: formData.description,
             type: formData.type,
             custom_time_text: formData.custom_time_text,
           }
-        : r
+        : routine
     );
 
     this.routinesSubject.next(updatedRoutines);
     return data;
+  }
+
+  async toggleActiveRoutine(id: string) {
+    const userId = this.auth.userId();
+    if (!userId) throw new Error('User not authenticated');
+
+    const routine = this.routinesSubject.value.find((r) => r.id === id);
+    if (!routine) throw new Error('Routine not found');
+
+    const newActiveState = !routine.active;
+
+    const { error } = await supabase
+      .from('routines')
+      .update({ active: newActiveState })
+      .eq('id', id)
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('❌ Supabase toggle active failed', error);
+      throw error;
+    }
+
+    // Update local state
+    const updatedRoutines = this.routinesSubject.value.map((r) =>
+      r.id === id ? { ...r, active: newActiveState } : r
+    );
+
+    this.routinesSubject.next(updatedRoutines);
   }
 
   async deleteRoutine(id: string) {

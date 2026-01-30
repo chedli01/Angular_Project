@@ -14,6 +14,7 @@ export class RoutineCard {
   routine = input.required<Routine>();
   delete = output<string>();
   edit = output<Routine>();
+  toggleActive = output<string>();
   showMenu = signal(false);
 
   toggleMenu() {
@@ -28,6 +29,10 @@ export class RoutineCard {
   onDelete() {
     this.delete.emit(this.routine().id);
     this.showMenu.set(false);
+  }
+
+  onToggleActive() {
+    this.toggleActive.emit(this.routine().id);
   }
   
   closeMenu() {

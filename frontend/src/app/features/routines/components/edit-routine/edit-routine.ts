@@ -13,12 +13,14 @@ import { CommonModule } from '@angular/common';
 export class EditRoutine {
   private routineService = inject(RoutineService);
 
+  // Input: the routine to edit
   routine = input.required<Routine>();
 
+  // Outputs to communicate with parent
   close = output<void>();
-
   routineUpdated = output<void>();
 
+  // Form state initialized from the input routine
   form = signal({
     name: '',
     description: '',
@@ -27,9 +29,11 @@ export class EditRoutine {
     active: true,
   });
 
+  // Constants
   RoutineType = RoutineType;
 
   constructor() {
+    // Initialize form with routine data when component loads
     effect(() => {
       const r = this.routine();
       this.form.set({
@@ -60,10 +64,6 @@ export class EditRoutine {
 
   updateCustomType(value: string) {
     this.form.update((f) => ({ ...f, custom_time_text: value }));
-  }
-
-  toggleActive() {
-    this.form.update((f) => ({ ...f, active: !f.active }));
   }
 
   async updateRoutine() {

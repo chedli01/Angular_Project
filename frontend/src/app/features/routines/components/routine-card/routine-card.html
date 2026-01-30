@@ -1,22 +1,43 @@
 <div
-  class="bg-white border rounded-xl p-6 relative"
+  class="border rounded-xl p-6 relative transition-colors"
+  [class.bg-white]="routine().active"
+  [class.bg-gray-100]="!routine().active"
+  [class.opacity-75]="!routine().active"
   (clickOutside)="closeMenu()"
 >
   <!-- Header with title and menu button -->
   <div class="flex items-start justify-between gap-4 mb-3">
     <div class="flex-1">
-      <h3 class="text-xl font-bold mb-1">{{ routine().name }}</h3>
-      <p class="text-sm text-gray-500">
-        @if(routine().active) {
-          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-            Active
+      <h3 class="text-xl font-bold mb-2">{{ routine().name }}</h3>
+      
+      <!-- Active/Inactive Toggle -->
+      <div class="flex items-center gap-3 mb-2">
+        <label class="flex items-center gap-2 cursor-pointer group">
+          <div class="relative">
+            <input
+              type="checkbox"
+              class="sr-only peer"
+              [checked]="routine().active"
+              (change)="onToggleActive()"
+            />
+            <div
+              class="w-11 h-6 bg-gray-300 rounded-full peer 
+                     peer-checked:bg-green-500 transition-colors"
+            ></div>
+            <div
+              class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full
+                     transition-transform peer-checked:translate-x-5 shadow-sm"
+            ></div>
+          </div>
+          <span class="text-sm font-medium" [class.text-gray-600]="!routine().active" [class.text-green-700]="routine().active">
+            @if(routine().active) {
+              Active
+            } @else {
+              Inactive
+            }
           </span>
-        } @else {
-          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-            Inactive
-          </span>
-        }
-      </p>
+        </label>
+      </div>
     </div>
 
     <!-- Three-dot menu button -->

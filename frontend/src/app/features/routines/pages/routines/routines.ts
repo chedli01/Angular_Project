@@ -49,6 +49,10 @@ export class Routines {
     await this.routineService.deleteRoutine(id);
   }
 
+  async toggleActiveRoutine(id: string) {
+    await this.routineService.toggleActiveRoutine(id);
+  }
+
   editRoutine(routine: Routine) {
     this.openEditDialog(routine);
   }
