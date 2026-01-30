@@ -144,7 +144,6 @@ export class HabitDataService {
     }
   }
 
-
   async toggleCompletion(id: string) {
     const todayDate = this.getTodayDate();
     const habit = this.habits().find((h) => h.id === id);
@@ -173,8 +172,6 @@ export class HabitDataService {
       });
 
       if (error) throw error;
-
-      await this.loadHabits();
     } catch (err) {
       console.error('Error toggling completion:', err);
       this.error.set(err instanceof Error ? err.message : 'Failed to toggle completion');

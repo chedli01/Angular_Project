@@ -21,7 +21,7 @@ export interface HabitFormData {
   description?: string;
 }
 
-// for UI 
+// for UI
 export interface HabitWithStatus extends Habit {
   completed: boolean;
   streak: number;
