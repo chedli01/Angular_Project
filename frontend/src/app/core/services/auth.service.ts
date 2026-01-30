@@ -1,11 +1,14 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { supabase } from '../supabase/supabase.config';
-import { ConnectedUser, UserSignup } from '../models/user.model';
+import { ConnectedUser, UserSignup } from '../../shared/models/user.model';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
+  private router = inject(Router);
+
   /** Signals to hold the user and authentication state */
   readonly user = signal<ConnectedUser | null>(null);
   readonly isAuthenticated = signal(false);
@@ -105,5 +108,7 @@ export class AuthService {
     // Reset signals
     this.user.set(null);
     this.isAuthenticated.set(false);
+    await this.router.navigateByUrl('/login');
+
   }
 }
