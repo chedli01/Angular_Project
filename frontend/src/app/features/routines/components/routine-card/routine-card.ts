@@ -1,22 +1,36 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Routine } from '@app/shared/models/routine.model';
-import { RoutineService } from '@app/core/services/routines.service';
+import { ClickOutsideDirective } from '@app/shared/directives/click-outside.directive';
 
 @Component({
   selector: 'app-routine-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ClickOutsideDirective],
   templateUrl: './routine-card.html',
   styleUrls: ['./routine-card.css'],
 })
 export class RoutineCard {
-  // Input signal for the routine
   routine = input.required<Routine>();
+  delete = output<string>();
+  edit = output<Routine>();
+  showMenu = signal(false);
 
-  private routineService = inject(RoutineService);
+  toggleMenu() {
+    this.showMenu.set(!this.showMenu());
+  }
 
-  deleteRoutine() {
-    this.routineService.deleteRoutine(this.routine().id);
+  onEdit() {
+    this.edit.emit(this.routine());
+    this.showMenu.set(false);
+  }
+
+  onDelete() {
+    this.delete.emit(this.routine().id);
+    this.showMenu.set(false);
+  }
+  
+  closeMenu() {
+    this.showMenu.set(false);
   }
 }

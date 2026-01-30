@@ -35,4 +35,10 @@ export class Routines {
   async deleteRoutine(id: string) {
     await this.routineService.deleteRoutine(id);
   }
+
+  editRoutine(routine: Routine) {
+    // TODO: Implement edit functionality
+    // You can open an edit dialog or navigate to an edit page
+    console.log('Edit routine:', routine);
+  }
 }
