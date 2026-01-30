@@ -10,10 +10,6 @@
       "@app/*": ["src/app/*"]
     }
   },
-  "include": [
-    "src/**/*.ts"
-  ],
-  "exclude": [
-    "src/**/*.spec.ts"
-  ]
+  "include": ["src/**/*.ts", "postcss.config.ts"],
+  "exclude": ["src/**/*.spec.ts"]
 }

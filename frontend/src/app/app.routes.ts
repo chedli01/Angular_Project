@@ -12,13 +12,27 @@ export const routes: Routes = [
   {
     path: '',
     component: MainLayoutComponent,
+    canActivate: [AuthGuard],
+    canActivateChild: [AuthGuard],
     children: [
       { path: '', redirectTo: 'today', pathMatch: 'full' },
-      { 
-        path: 'today', 
-        loadComponent: () => import('./features/today/pages/today/today').then(m => m.Today)
+      {
+        path: 'today',
+        loadComponent: () => import('./features/today/pages/today/today').then((m) => m.Today),
       },
-      { path: '**', redirectTo: 'today' }
-    ]
-  }
+      {
+        path: 'routines',
+        loadComponent: () =>
+          import('./features/routines/pages/routines/routines').then((m) => m.Routines),
+      },
+      {
+        path: 'calendar',
+        loadComponent: () =>
+          import('./features/calendar-page/calendar-page.component').then(
+            (m) => m.CalendarPageComponent,
+          ),
+      },
+      { path: '**', redirectTo: 'today' },
+    ],
+  },
 ];
