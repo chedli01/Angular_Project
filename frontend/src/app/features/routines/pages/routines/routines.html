@@ -20,10 +20,19 @@
   </button>
 </div>
 
-<!-- Use the new component here -->
+<!-- Add Routine Dialog -->
 @if (showAddDialog()) {
   <app-add-routine 
     (close)="closeAddDialog()" 
     (routineCreated)="closeAddDialog()"
+  />
+}
+
+<!-- Edit Routine Dialog -->
+@if (showEditDialog() && routineToEdit()) {
+  <app-edit-routine 
+    [routine]="routineToEdit()!"
+    (close)="closeEditDialog()" 
+    (routineUpdated)="closeEditDialog()"
   />
 }

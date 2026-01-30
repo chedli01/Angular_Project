@@ -23,12 +23,6 @@ export class RoutineService {
     });
   }
 
-  
-
-
-
-
-
   private loadRoutines(userId: string) {
     from(
       supabase
@@ -47,8 +41,9 @@ export class RoutineService {
             id: r.id,
             name: r.name,
             description: r.description,
-            active:r.active,
+            active: r.active,
             type: r.preferred_time as any,
+            custom_time_text: r.custom_time_text,
             createdAt: new Date(r.created_at),
           }))
         );
@@ -63,7 +58,7 @@ export class RoutineService {
     const newRoutine: Routine = {
       ...formData,
       id: crypto.randomUUID(),
-      active:true,
+      active: true,
       createdAt: new Date(),
     };
 
@@ -76,8 +71,8 @@ export class RoutineService {
           name: newRoutine.name,
           description: newRoutine.description,
           preferred_time: newRoutine.type,
-          custom_time_text:newRoutine.custom_time_text,
-          active:newRoutine.active,
+          custom_time_text: newRoutine.custom_time_text,
+          active: newRoutine.active,
           created_at: newRoutine.createdAt,
         },
       ])
@@ -91,6 +86,45 @@ export class RoutineService {
 
     this.routinesSubject.next([...this.routinesSubject.value, newRoutine]);
     return newRoutine;
+  }
+
+  async updateRoutine(id: string, formData: RoutineFormData) {
+    const userId = this.auth.userId();
+    if (!userId) throw new Error('User not authenticated');
+
+    const { data, error } = await supabase
+      .from('routines')
+      .update({
+        name: formData.name,
+        description: formData.description,
+        preferred_time: formData.type,
+        custom_time_text: formData.custom_time_text,
+      })
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Supabase update failed', error);
+      throw error;
+    }
+
+    // Update local state
+    const updatedRoutines = this.routinesSubject.value.map((r) =>
+      r.id === id
+        ? {
+            ...r,
+            name: formData.name,
+            description: formData.description,
+            type: formData.type,
+            custom_time_text: formData.custom_time_text,
+          }
+        : r
+    );
+
+    this.routinesSubject.next(updatedRoutines);
+    return data;
   }
 
   async deleteRoutine(id: string) {

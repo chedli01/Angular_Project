@@ -1,14 +1,15 @@
 import { Component, inject, signal, effect } from '@angular/core';
 import { RoutineService } from '@app/core/services/routines.service'; 
 import { Routine } from '@app/shared/models/routine.model';
-import { AddRoutine } from '../../components/add-routine/add-routine'; // Import the new component
-import { RoutineCard } from '../../components/routine-card/routine-card'; // Import RoutineCard
+import { AddRoutine } from '../../components/add-routine/add-routine';
+import { EditRoutine } from '../../components/edit-routine/edit-routine';
+import { RoutineCard } from '../../components/routine-card/routine-card';
 import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-routines',
   standalone: true,
-  imports: [AddRoutine, RoutineCard, CommonModule], // Add RoutineCard to imports
+  imports: [AddRoutine, EditRoutine, RoutineCard, CommonModule],
   templateUrl: './routines.html',
   styleUrls: ['./routines.css'],
 })
@@ -17,6 +18,8 @@ export class Routines {
 
   routines = signal<Routine[]>([]);
   showAddDialog = signal(false);
+  showEditDialog = signal(false);
+  routineToEdit = signal<Routine | null>(null);
 
   constructor() {
     effect(() => {
@@ -32,13 +35,21 @@ export class Routines {
     this.showAddDialog.set(false);
   }
 
+  openEditDialog(routine: Routine) {
+    this.routineToEdit.set(routine);
+    this.showEditDialog.set(true);
+  }
+
+  closeEditDialog() {
+    this.showEditDialog.set(false);
+    this.routineToEdit.set(null);
+  }
+
   async deleteRoutine(id: string) {
     await this.routineService.deleteRoutine(id);
   }
 
   editRoutine(routine: Routine) {
-    // TODO: Implement edit functionality
-    // You can open an edit dialog or navigate to an edit page
-    console.log('Edit routine:', routine);
+    this.openEditDialog(routine);
   }
 }
