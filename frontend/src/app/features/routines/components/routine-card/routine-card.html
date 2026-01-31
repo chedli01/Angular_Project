@@ -16,6 +16,17 @@
     </div>
     <div class="flex items-center gap-3">
       <label class="flex items-center gap-2 cursor-pointer group">
+        <span
+          class="text-sm font-medium"
+          [class.text-gray-600]="!routine().active"
+          [class.text-green-700]="routine().active"
+        >
+          @if (routine().active) {
+            Active
+          } @else {
+            Inactive
+          }
+        </span>
         <div class="relative">
           <input
             type="checkbox"
@@ -30,17 +41,6 @@
             class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5 shadow-sm"
           ></div>
         </div>
-        <span
-          class="text-sm font-medium"
-          [class.text-gray-600]="!routine().active"
-          [class.text-green-700]="routine().active"
-        >
-          @if (routine().active) {
-            Active
-          } @else {
-            Inactive
-          }
-        </span>
       </label>
       <div class="relative shrink-0">
         <button
