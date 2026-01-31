@@ -10,4 +10,6 @@ import { CdkDropList } from '@angular/cdk/drag-drop';
 })
 export class HabitListComponent {
   @Input() habits: Habit[] = [];
+  @Input() dropListId = 'available-habits-list';
+  @Input() connectedDropLists: string[] = [];
 }

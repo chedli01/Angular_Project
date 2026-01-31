@@ -83,6 +83,7 @@
   <!-- HABITS DROP ZONE -->
   <div
     cdkDropList
+    [id]="dropListId()"
     [cdkDropListData]="habits()"
     (cdkDropListDropped)="onHabitDrop($event)"
     class="mt-4 space-y-3 rounded-xl border bg-gray-50 p-3 min-h-[120px]"

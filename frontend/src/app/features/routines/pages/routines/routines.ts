@@ -1,4 +1,4 @@
-import { Component, inject, signal, effect } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { RoutineService } from '@app/core/services/routines.service';
 import { Routine } from '@app/shared/models/routine.model';
 import { AddRoutine } from '../../components/add-routine/add-routine';
@@ -22,6 +22,10 @@ export class Routines {
   private habitRoutineService = inject(HabitRoutineService);
   private habitService = inject(HabitDataService);
   routines = signal<Routine[]>([]);
+  readonly habitsListId = 'available-habits-list';
+  readonly routineDropListIds = computed(() =>
+    this.routines().map((routine) => this.getRoutineDropListId(routine.id))
+  );
   showAddDialog = signal(false);
   showEditDialog = signal(false);
   routineToEdit = signal<Routine | null>(null);
@@ -70,5 +74,9 @@ export class Routines {
 
   editRoutine(routine: Routine) {
     this.openEditDialog(routine);
+  }
+
+  getRoutineDropListId(routineId: string) {
+    return `routine-drop-${routineId}`;
   }
 }

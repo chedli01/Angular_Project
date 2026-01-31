@@ -21,6 +21,7 @@ export class RoutineCard {
   toggleActive = output<string>();
   showMenu = signal(false);
   habits = input<Habit[]>([]);
+  dropListId = input.required<string>();
   private habitRoutineService = inject(HabitRoutineService);
   toggleMenu() {
     this.showMenu.set(!this.showMenu());

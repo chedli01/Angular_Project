@@ -12,7 +12,11 @@
     </button>
   </div>
   <div class="flex">
-    <app-habits-list [habits]="allHabits()" />
+    <app-habits-list
+      [habits]="allHabits()"
+      [dropListId]="habitsListId"
+      [connectedDropLists]="routineDropListIds()"
+    />
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
       @for (routine of routines(); track routine.id) {
         <app-routine-card
@@ -21,6 +25,7 @@
           (edit)="editRoutine($event)"
           (toggleActive)="toggleActiveRoutine($event)"
           [habits]="routineHabits()[routine.id] || []"
+          [dropListId]="getRoutineDropListId(routine.id)"
         />
       }
     </div>
