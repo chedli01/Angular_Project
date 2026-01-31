@@ -1,0 +1,5 @@
+<div cdkDropList [cdkDropListData]="habits" cdkDropListSortingDisabled class="space-y-3">
+  @for (habit of habits; track habit.id) {
+    <app-habit-routine [habit]="habit" />
+  }
+</div>
