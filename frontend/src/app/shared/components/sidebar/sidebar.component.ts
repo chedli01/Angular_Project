@@ -1,6 +1,6 @@
 import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { SettingsComponent } from './settings-component/settings-component';
 
@@ -13,6 +13,7 @@ import { SettingsComponent } from './settings-component/settings-component';
 })
 export class SidebarComponent {
   private authService = inject(AuthService);
+    private router = inject(Router);
   
   isCollapsed = signal(false);
   isMobileOpen = signal(false);
@@ -48,5 +49,8 @@ export class SidebarComponent {
   closeSettings() {
     this.isSettingsOpen.set(false);
   }
+  isActive(path: string): boolean {
+  return this.router.url.includes(path);
+}
 
 }
