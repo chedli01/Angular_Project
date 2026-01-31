@@ -1,12 +1,13 @@
-import { Component, inject, computed, signal } from '@angular/core';
+import { Component, inject, computed, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { HabitDataService } from '../../../../core/services/habit-data.service';
 import { HabitFormData } from '../../../../shared/models/habit.model';
+import { AddHabitDialog } from '../../components/add-habit-dialog/add-habit-dialog';
 
 @Component({
   selector: 'app-today',
-  imports: [CommonModule],
+  imports: [CommonModule, AddHabitDialog],
   templateUrl: './today.html',
   styleUrl: './today.css',
 })
