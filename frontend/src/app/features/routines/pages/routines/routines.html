@@ -11,15 +11,19 @@
       ➕ Create Routine
     </button>
   </div>
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
-    @for (routine of routines(); track routine.id) {
-      <app-routine-card
-        [routine]="routine"
-        (delete)="deleteRoutine($event)"
-        (edit)="editRoutine($event)"
-        (toggleActive)="toggleActiveRoutine($event)"
-      />
-    }
+  <div class="flex">
+    <app-habits-list [habits]="allHabits()" />
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
+      @for (routine of routines(); track routine.id) {
+        <app-routine-card
+          [routine]="routine"
+          (delete)="deleteRoutine($event)"
+          (edit)="editRoutine($event)"
+          (toggleActive)="toggleActiveRoutine($event)"
+          [habits]="routineHabits()[routine.id] || []"
+        />
+      }
+    </div>
   </div>
 </div>
 

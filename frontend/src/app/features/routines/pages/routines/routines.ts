@@ -1,30 +1,45 @@
 import { Component, inject, signal, effect } from '@angular/core';
-import { RoutineService } from '@app/core/services/routines.service'; 
+import { RoutineService } from '@app/core/services/routines.service';
 import { Routine } from '@app/shared/models/routine.model';
 import { AddRoutine } from '../../components/add-routine/add-routine';
 import { EditRoutine } from '../../components/edit-routine/edit-routine';
 import { RoutineCard } from '../../components/routine-card/routine-card';
 import { CommonModule } from '@angular/common';
+import { HabitRoutineService } from '@app/core/services/habit-routine.service';
+import { Habit } from '@app/shared/models/habit.model';
+import { HabitListComponent } from '../../components/habit-list/habit-list';
+import { HabitDataService } from '@app/core/services/habit-data.service';
 
 @Component({
   selector: 'app-routines',
   standalone: true,
-  imports: [AddRoutine, EditRoutine, RoutineCard, CommonModule],
+  imports: [AddRoutine, EditRoutine, RoutineCard, CommonModule, HabitListComponent],
   templateUrl: './routines.html',
   styleUrls: ['./routines.css'],
 })
 export class Routines {
   private routineService = inject(RoutineService);
-
+  private habitRoutineService = inject(HabitRoutineService);
+  private habitService = inject(HabitDataService);
   routines = signal<Routine[]>([]);
   showAddDialog = signal(false);
   showEditDialog = signal(false);
   routineToEdit = signal<Routine | null>(null);
-
+  routineHabits = signal<Record<string, Habit[]>>({});
+  allHabits = this.habitService.getHabits;
   constructor() {
-    effect(() => {
-      this.routineService.routines$.subscribe((r) => this.routines.set(r));
+    // Load routines
+    this.routineService.routines$.subscribe(async (r) => {
+      this.routines.set(r);
+      await this.loadRoutineHabits(r);
     });
+  }
+  async loadRoutineHabits(routines: Routine[]) {
+    const map: Record<string, Habit[]> = {};
+    for (const routine of routines) {
+      map[routine.id] = await this.habitRoutineService.loadByRoutine(routine.id);
+    }
+    this.routineHabits.set(map);
   }
 
   openAddDialog() {
