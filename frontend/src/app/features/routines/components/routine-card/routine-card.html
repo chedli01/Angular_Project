@@ -80,4 +80,19 @@
   <div class="grow flex items-center">
     <p class="text-gray-600 leading-relaxed text-base">{{ routine().description }}</p>
   </div>
+  <!-- HABITS DROP ZONE -->
+  <div
+    cdkDropList
+    [cdkDropListData]="habits()"
+    (cdkDropListDropped)="onHabitDrop($event)"
+    class="mt-4 space-y-3 rounded-xl border bg-gray-50 p-3 min-h-[120px]"
+  >
+    @for (habit of habits(); track habit.id) {
+      <app-habit-routine [habit]="habit" />
+    }
+
+    <div *ngIf="habits().length === 0" class="text-sm text-gray-400 text-center py-6">
+      Drag habits here
+    </div>
+  </div>
 </div>
