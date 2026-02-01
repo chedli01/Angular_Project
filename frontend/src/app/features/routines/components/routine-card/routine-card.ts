@@ -23,6 +23,7 @@ export class RoutineCard {
   habits = input<Habit[]>([]);
   displayHabits = signal<Habit[]>([]);
   dropListId = input.required<string>();
+  connectedDropLists = input<string[]>([]);
   private habitRoutineService = inject(HabitRoutineService);
   private syncHabitsEffect = effect(() => {
     this.displayHabits.set(this.habits());

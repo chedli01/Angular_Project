@@ -1,8 +1,8 @@
 <div
   cdkDropList
   [id]="dropListId"
-  [cdkDropListData]="habits"
   [cdkDropListConnectedTo]="connectedDropLists"
+  (cdkDropListDropped)="onDrop($event)"
   cdkDropListSortingDisabled
   class="space-y-3"
 >

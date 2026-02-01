@@ -84,7 +84,7 @@
   <div
     cdkDropList
     [id]="dropListId()"
-    [cdkDropListData]="habits()"
+    [cdkDropListConnectedTo]="connectedDropLists()"
     (cdkDropListDropped)="onHabitDrop($event)"
     class="mt-4 space-y-3 rounded-xl border bg-gray-50 p-3 min-h-[120px]"
   >

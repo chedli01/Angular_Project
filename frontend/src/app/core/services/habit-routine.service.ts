@@ -65,18 +65,37 @@ export class HabitRoutineService {
   /**
    * Delete a habit from a routine
    */
-  async delete(id: string, routineId: string): Promise<void> {
-    try {
-      const { error } = await supabase.from('routine_habits').delete().eq('id', id);
-      if (error) throw error;
+  async delete(habitId: string, routineId: string): Promise<void> {
+    const previousMap = this.routineHabits();
+    const previousList = previousMap[routineId] || [];
+    const nextList = previousList.filter((h) => h.id !== habitId);
 
+    // If nothing changed, no need to hit the backend.
+    if (nextList.length === previousList.length) {
+      return;
+    }
+
+    this.routineHabits.update((map) => ({
+      ...map,
+      [routineId]: nextList,
+    }));
+
+    try {
+      const { error } = await supabase
+        .from('routine_habits')
+        .delete()
+        .eq('routine_id', routineId)
+        .eq('habit_id', habitId);
+      if (error) throw error;
+    } catch (err) {
+      // Revert optimistic update on failure
       this.routineHabits.update((map) => ({
         ...map,
-        [routineId]: (map[routineId] || []).filter((h) => h.id !== id),
+        [routineId]: previousList,
       }));
-    } catch (err) {
       console.error('Error deleting habit routine:', err);
       this.error.set(err instanceof Error ? err.message : 'Failed to delete habit routine');
+      throw err;
     }
   }
 
