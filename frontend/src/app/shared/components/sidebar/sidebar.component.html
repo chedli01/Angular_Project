@@ -1,37 +1,31 @@
 @if (isMobileOpen()) {
-  <div
-    class="fixed inset-0 z-40 lg:hidden"
-    (click)="closeMobileSidebar(); closeSettings()">
-  </div>
+<div class="fixed inset-0 z-40 lg:hidden" (click)="closeMobileSidebar(); closeSettings()">
+</div>
 }
 
 <aside
   class="fixed left-0 top-0 h-screen bg-white text-gray-900 z-50 transition-all duration-300 ease-in-out border-r border-gray-200"
-  [class.w-64]="!isCollapsed()"
-  [class.w-20]="isCollapsed()"
-  [class.-translate-x-full]="!isMobileOpen()"
-  [class.translate-x-0]="isMobileOpen()"
-  [class.lg:translate-x-0]="true">
+  [class.w-64]="!isCollapsed()" [class.w-20]="isCollapsed()" [class.-translate-x-full]="!isMobileOpen()"
+  [class.translate-x-0]="isMobileOpen()" [class.lg:translate-x-0]="true">
 
   <div class="flex flex-col h-full">
 
     <!-- HEADER -->
     <div class="p-4 border-b border-gray-200 flex items-center justify-between">
       @if (!isCollapsed()) {
-        <div class="flex items-center gap-3">
-          <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span class="text-white font-bold text-lg">H</span>
-          </div>
-          <h1 class="text-xl font-bold">Habit Tracker</h1>
-        </div>
-      } @else {
-        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mx-auto shadow-md">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
           <span class="text-white font-bold text-lg">H</span>
         </div>
+        <h1 class="text-xl font-bold">Habit Tracker</h1>
+      </div>
+      } @else {
+      <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mx-auto shadow-md">
+        <span class="text-white font-bold text-lg">H</span>
+      </div>
       }
 
-      <button
-        (click)="toggleSidebar()"
+      <button (click)="toggleSidebar()"
         class="hidden lg:flex p-1.5 hover:bg-gray-100 rounded-lg transition hover:scale-110 duration-200">
         <span class="text-sm">{{ isCollapsed() ? '→' : '←' }}</span>
       </button>
@@ -41,100 +35,95 @@
     <nav class="flex-1 p-4 overflow-y-auto">
       <ul class="space-y-2">
         @for (item of navItems; track item.path) {
-          <li>
-            <a
-              [routerLink]="item.path"
-              routerLinkActive="bg-blue-600 text-white"
-              [routerLinkActiveOptions]="{ exact: false }"
-              (click)="closeMobileSidebar(); closeSettings()"
-              class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition group relative"
-              [class.justify-center]="isCollapsed()"
-              [class.hover:bg-blue-700]="isActive(item.path)"
-              [class.hover:bg-gray-100]="!isActive(item.path)">
+        <li>
+          <a [routerLink]="item.path" routerLinkActive="bg-blue-600 text-white"
+            [routerLinkActiveOptions]="{ exact: false }" (click)="closeMobileSidebar(); closeSettings()"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition group relative"
+            [class.justify-center]="isCollapsed()" [class.hover:bg-blue-700]="isActive(item.path)"
+            [class.hover:bg-gray-100]="!isActive(item.path)">
 
 
-              <!-- ICONS -->
-              @if (item.icon === 'home') {
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-              }
+            <!-- ICONS -->
+            @if (item.icon === 'home') {
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            }
 
-              @if (item.icon === 'calendar') {
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              }
+            @if (item.icon === 'calendar') {
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            }
 
-              @if (item.icon === 'habits') {
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                </svg>
-              }
+            @if (item.icon === 'habits') {
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+            }
 
-              @if (item.icon === 'routines') {
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
-              }
+            @if (item.icon === 'routines') {
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            }
 
-              @if (item.icon === 'insights') {
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              }
+            @if (item.icon === 'automation') {
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            }
 
-              <!-- LABEL -->
-              @if (!isCollapsed()) {
-                <span class="font-medium text-sm">{{ item.label }}</span>
-              }
+            <!-- LABEL -->
+            @if (!isCollapsed()) {
+            <span class="font-medium text-sm">{{ item.label }}</span>
+            }
 
-              <!-- TOOLTIP -->
-              @if (isCollapsed()) {
-                <div
-                  class="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-50 shadow-lg font-medium">
-                  {{ item.label }}
-                </div>
-              }
-            </a>
-          </li>
+            <!-- TOOLTIP -->
+            @if (isCollapsed()) {
+            <div
+              class="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-50 shadow-lg font-medium">
+              {{ item.label }}
+            </div>
+            }
+          </a>
+        </li>
         }
       </ul>
     </nav>
 
     <!-- PROFILE + SETTINGS -->
     <div class="p-4 border-t border-gray-200 relative">
-      <button
-        (click)="toggleSettings()"
+      <button (click)="toggleSettings()"
         class="flex items-center gap-3 w-full hover:bg-gray-100 rounded-lg p-2 transition duration-200 group"
         [class.justify-center]="isCollapsed()">
 
-        <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
+        <div
+          class="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
           <span class="text-sm font-semibold text-white">
             {{ (currentUser()?.name || 'U').charAt(0).toUpperCase() }}
           </span>
         </div>
 
         @if (!isCollapsed()) {
-          <div class="text-left min-w-0">
-            <p class="text-sm font-medium truncate text-gray-900">
-              {{ currentUser()?.name || 'User' }}
-            </p>
-            <p class="text-xs text-gray-500 truncate">
-              {{ currentUser()?.email || 'user@example.com' }}
-            </p>
-          </div>
+        <div class="text-left min-w-0">
+          <p class="text-sm font-medium truncate text-gray-900">
+            {{ currentUser()?.name || 'User' }}
+          </p>
+          <p class="text-xs text-gray-500 truncate">
+            {{ currentUser()?.email || 'user@example.com' }}
+          </p>
+        </div>
         }
         @if (isCollapsed()) {
-          <div
-            class="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-50 shadow-lg">
-            {{ currentUser()?.name || 'User' }}
-          </div>
+        <div
+          class="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-50 shadow-lg">
+          {{ currentUser()?.name || 'User' }}
+        </div>
         }
       </button>
     </div>
@@ -143,28 +132,21 @@
 
 
 @if (isSettingsOpen()) {
-  <div 
-    class="fixed inset-0 z-40 pointer-events-none"
-    (click)="closeSettings()">
-  </div>
-  <div class="fixed bottom-8 left-8 z-50">
-    <app-settings-component />
-  </div>
+<div class="fixed inset-0 z-40 pointer-events-none" (click)="closeSettings()">
+</div>
+<div class="fixed bottom-8 left-8 z-50">
+  <app-settings-component />
+</div>
 }
 
 <!-- MOBILE TOGGLE -->
-<button
-  (click)="toggleMobileSidebar()"
+<button (click)="toggleMobileSidebar()"
   class="fixed top-4 left-4 z-30 lg:hidden p-2 bg-white rounded-lg shadow-lg border border-gray-200">
   <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-      d="M4 6h16M4 12h16M4 18h16" />
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
   </svg>
 </button>
 
 <!-- LAYOUT SPACER -->
-<div
-  class="hidden lg:block transition-all duration-300"
-  [class.w-64]="!isCollapsed()"
-  [class.w-20]="isCollapsed()">
+<div class="hidden lg:block transition-all duration-300" [class.w-64]="!isCollapsed()" [class.w-20]="isCollapsed()">
 </div>

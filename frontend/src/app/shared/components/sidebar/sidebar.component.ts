@@ -7,14 +7,14 @@ import { SettingsComponent } from './settings-component/settings-component';
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterModule,SettingsComponent],
+  imports: [CommonModule, RouterModule, SettingsComponent],
   templateUrl: './sidebar.component.html',
-  styleUrl: './sidebar.component.css'
+  styleUrl: './sidebar.component.css',
 })
 export class SidebarComponent {
   private authService = inject(AuthService);
-    private router = inject(Router);
-  
+  private router = inject(Router);
+
   isCollapsed = signal(false);
   isMobileOpen = signal(false);
   isSettingsOpen = signal(false);
@@ -27,15 +27,15 @@ export class SidebarComponent {
     { path: '/calendar', icon: 'calendar', label: 'Calendar' },
     { path: '/habits', icon: 'habits', label: 'Habits' },
     { path: '/routines', icon: 'routines', label: 'Routines' },
-    { path: '/insights', icon: 'insights', label: 'Insights' }
+    { path: '/automation', icon: 'automation', label: 'Automation' },
   ];
 
   toggleSidebar() {
-    this.isCollapsed.update(val => !val);
+    this.isCollapsed.update((val) => !val);
   }
 
   toggleMobileSidebar() {
-    this.isMobileOpen.update(val => !val);
+    this.isMobileOpen.update((val) => !val);
   }
 
   closeMobileSidebar() {
@@ -43,14 +43,13 @@ export class SidebarComponent {
   }
 
   toggleSettings() {
-    this.isSettingsOpen.update(v => !v);
+    this.isSettingsOpen.update((v) => !v);
   }
 
   closeSettings() {
     this.isSettingsOpen.set(false);
   }
   isActive(path: string): boolean {
-  return this.router.url.includes(path);
-}
-
+    return this.router.url.includes(path);
+  }
 }
