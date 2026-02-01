@@ -1,0 +1,252 @@
+<!-- automation.html -->
+
+<div class="p-8 max-w-6xl mx-auto">
+  <div class="flex justify-between items-center mb-8">
+    <div>
+      <h1 class="text-3xl font-bold">Automation Rules</h1>
+      <p class="text-gray-600 mt-2">Automate actions based on your habit activity</p>
+    </div>
+    <button
+      (click)="openCreateDialog()"
+      class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+    >
+      ➕ Create Rule
+    </button>
+  </div>
+
+  <!-- Rules List -->
+  <div class="grid gap-4">
+    @for (rule of rules(); track rule.id) {
+      <div
+        class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm transition-colors"
+        [class.opacity-60]="!rule.enabled"
+      >
+        <div class="flex items-start justify-between gap-4">
+          <!-- Content -->
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-3">
+              <h3 class="text-lg font-semibold">{{ rule.name }}</h3>
+              <span
+                class="px-3 py-1 text-xs font-medium rounded-full"
+                [class.bg-green-100]="rule.enabled"
+                [class.text-green-800]="rule.enabled"
+                [class.bg-gray-100]="!rule.enabled"
+                [class.text-gray-600]="!rule.enabled"
+              >
+                {{ rule.enabled ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
+
+            <!-- Human readable description -->
+            <p class="text-gray-700 text-sm">{{ getRuleDescription(rule) }}</p>
+          </div>
+
+          <!-- Controls -->
+          <div class="flex items-center gap-3 flex-shrink-0">
+            <!-- Toggle -->
+            <label class="relative cursor-pointer">
+              <input
+                type="checkbox"
+                class="sr-only peer"
+                [checked]="rule.enabled"
+                (change)="toggleRule(rule.id, !rule.enabled)"
+              />
+              <div class="w-10 h-5 bg-gray-300 rounded-full peer peer-checked:bg-indigo-600 transition-colors"></div>
+              <div class="absolute left-1 top-1 w-3 h-3 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+            </label>
+
+            <!-- Delete -->
+            <button
+              (click)="deleteRule(rule.id)"
+              class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+              title="Delete rule"
+            >
+              🗑️
+            </button>
+          </div>
+        </div>
+      </div>
+    } @empty {
+      <div class="text-center py-16 border-2 border-dashed border-gray-300 rounded-xl">
+        <div class="text-5xl mb-4">🤖</div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">No automation rules yet</h3>
+        <p class="text-gray-500 mb-6">Create a rule to automate actions when habits are missed or completed</p>
+        <button
+          (click)="openCreateDialog()"
+          class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+        >
+          Create Rule
+        </button>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Create Rule Dialog -->
+@if (showCreateDialog()) {
+  <div
+    class="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center z-50"
+    (click)="closeCreateDialog()"
+  >
+    <div
+      class="bg-white rounded-2xl p-8 w-full max-w-lg shadow-2xl border border-gray-100"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 class="text-2xl font-bold mb-6 text-gray-900">Create Automation Rule</h2>
+
+      <!-- Name -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Rule Name</label>
+        <input
+          type="text"
+          placeholder="e.g. Water Reminder"
+          class="w-full border border-gray-300 rounded-xl px-4 py-3
+                 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          [value]="form().name"
+          (input)="updateForm('name', $any($event.target).value)"
+        />
+      </div>
+
+      <!-- ─── TRIGGER ────────────────────────────────────────────────── -->
+      <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-5 mb-4">
+        <h3 class="text-sm font-semibold text-indigo-700 mb-4 uppercase tracking-wide">Trigger</h3>
+
+        <div class="flex flex-wrap items-center gap-3 text-sm text-gray-700">
+          <span class="font-semibold">IF</span>
+
+          <!-- Habit select -->
+          <select
+            class="border border-gray-300 rounded-lg px-3 py-2 flex-1 min-w-[160px]
+                   focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+            [value]="form().trigger_habit_id"
+            (change)="updateForm('trigger_habit_id', $any($event.target).value)"
+          >
+            <option value="">Select habit</option>
+            @for (habit of habits(); track habit.id) {
+              <option [value]="habit.id">{{ habit.name }}</option>
+            }
+          </select>
+
+          <span class="font-semibold">is</span>
+
+          <!-- Trigger type select -->
+          <select
+            class="border border-gray-300 rounded-lg px-3 py-2
+                   focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+            [value]="form().trigger_type"
+            (change)="updateForm('trigger_type', $any($event.target).value)"
+          >
+            <option [value]="TriggerType.HABIT_MISSED">missed</option>
+            <option [value]="TriggerType.HABIT_COMPLETED">completed</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ─── CONDITION ──────────────────────────────────────────────── -->
+      <div class="bg-amber-50 border border-amber-100 rounded-xl p-5 mb-4">
+        <h3 class="text-sm font-semibold text-amber-700 mb-4 uppercase tracking-wide">Condition</h3>
+
+        <div class="flex flex-wrap items-center gap-3 text-sm text-gray-700">
+          <span class="font-semibold">AND it happens</span>
+
+          <!-- Times -->
+          <input
+            type="number"
+            min="1"
+            class="border border-gray-300 rounded-lg px-3 py-2 w-20 text-center
+                   focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            [value]="form().condition_times"
+            (input)="updateForm('condition_times', +$any($event.target).value)"
+          />
+
+          <span>time{{ form().condition_times > 1 ? 's' : '' }} in</span>
+
+          <!-- Days -->
+          <input
+            type="number"
+            min="1"
+            class="border border-gray-300 rounded-lg px-3 py-2 w-20 text-center
+                   focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            [value]="form().condition_in_days"
+            (input)="updateForm('condition_in_days', +$any($event.target).value)"
+          />
+
+          <span>days</span>
+        </div>
+      </div>
+
+      <!-- ─── ACTION ─────────────────────────────────────────────────── -->
+      <div class="bg-green-50 border border-green-100 rounded-xl p-5 mb-6">
+        <h3 class="text-sm font-semibold text-green-700 mb-4 uppercase tracking-wide">Action</h3>
+
+        <div class="flex flex-wrap items-center gap-3 text-sm text-gray-700 mb-3">
+          <span class="font-semibold">THEN</span>
+
+          <!-- Action type select -->
+          <select
+            class="border border-gray-300 rounded-lg px-3 py-2 flex-1 min-w-[200px]
+                   focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+            [value]="form().action_type"
+            (change)="updateForm('action_type', $any($event.target).value)"
+          >
+            <option [value]="ActionType.SHOW_ALERT">Show Alert</option>
+            <option [value]="ActionType.SEND_NOTIFICATION">Send Notification</option>
+            <option [value]="ActionType.DISABLE_ROUTINE">Disable Routine</option>
+          </select>
+        </div>
+
+        <!-- Routine select (only for DISABLE_ROUTINE) -->
+        @if (actionNeedsRoutine()) {
+          <div class="flex items-center gap-3 text-sm text-gray-700">
+            <span class="font-semibold">Routine:</span>
+            <select
+              class="border border-gray-300 rounded-lg px-3 py-2 flex-1
+                     focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              [value]="form().action_routine_id"
+              (change)="updateForm('action_routine_id', $any($event.target).value)"
+            >
+              <option value="">Select routine</option>
+              @for (routine of routines(); track routine.id) {
+                <option [value]="routine.id">{{ routine.name }}</option>
+              }
+            </select>
+          </div>
+        }
+
+        <!-- Message input (only for SHOW_ALERT / SEND_NOTIFICATION) -->
+        @if (actionNeedsMessage()) {
+          <div class="flex items-center gap-3 text-sm text-gray-700">
+            <span class="font-semibold">Message:</span>
+            <input
+              type="text"
+              placeholder="e.g. Don't forget to drink water!"
+              class="border border-gray-300 rounded-lg px-3 py-2 flex-1
+                     focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              [value]="form().action_message"
+              (input)="updateForm('action_message', $any($event.target).value)"
+            />
+          </div>
+        }
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex gap-3">
+        <button
+          (click)="closeCreateDialog()"
+          class="flex-1 rounded-xl py-3 border border-gray-300
+                 text-gray-700 hover:bg-gray-100 transition"
+        >
+          Cancel
+        </button>
+        <button
+          (click)="createRule()"
+          [disabled]="!isFormValid()"
+          class="flex-1 rounded-xl py-3 bg-indigo-600 text-white
+                 hover:bg-indigo-700 transition disabled:opacity-50"
+        >
+          Create Rule
+        </button>
+      </div>
+    </div>
+  </div>
+}

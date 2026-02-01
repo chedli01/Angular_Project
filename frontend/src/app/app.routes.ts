@@ -5,6 +5,7 @@ import { NoAuthGuard } from './core/guards/no-auth.guard';
 import { LoginComponent } from './features/auth/login/login';
 import { SignupComponent } from './features/auth/signup/signup';
 import { MainLayoutComponent } from './shared/components/layout/main-layout.component';
+import { AutomationComponent } from './features/automation/page/automation/automation';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent, canActivate: [NoAuthGuard] },
@@ -25,6 +26,8 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/routines/pages/routines/routines').then((m) => m.Routines),
       },
+        { path: 'automation', component: AutomationComponent },
+
       {
         path: 'calendar',
         loadComponent: () =>

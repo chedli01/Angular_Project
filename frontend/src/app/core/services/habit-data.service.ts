@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import {
   Habit,
   HabitFormData,
@@ -6,6 +6,7 @@ import {
   HabitWithStatus,
 } from '../../shared/models/habit.model';
 import { supabase } from '../supabase/supabase.config';
+import { AutomationService } from './automation.service';
 
 @Injectable({
   providedIn: 'root',
@@ -14,6 +15,8 @@ export class HabitDataService {
   private habits = signal<HabitWithStatus[]>([]);
   private loading = signal<boolean>(false);
   private error = signal<string | null>(null);
+
+  private automationService = inject(AutomationService)
 
   getHabits = this.habits.asReadonly();
   getLoading = this.loading.asReadonly();
@@ -172,6 +175,7 @@ export class HabitDataService {
       });
 
       if (error) throw error;
+      await this.automationService.checkHabitEvent(id,newCompletedState,new Date())
     } catch (err) {
       console.error('Error toggling completion:', err);
       this.error.set(err instanceof Error ? err.message : 'Failed to toggle completion');
