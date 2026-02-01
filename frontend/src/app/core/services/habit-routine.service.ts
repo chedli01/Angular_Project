@@ -15,9 +15,6 @@ export class HabitRoutineService {
   getLoading = this.loading.asReadonly();
   getError = this.error.asReadonly();
 
-  /**
-   * Load habits for a specific routine
-   */
   async loadByRoutine(routineId: string): Promise<Habit[]> {
     this.loading.set(true);
     this.error.set(null);
@@ -29,7 +26,6 @@ export class HabitRoutineService {
         .eq('routine_id', routineId);
 
       if (error) throw error;
-
       const habits: Habit[] = (data || []).map((hr: any) => hr.habits); // adjust to your join structure
       this.routineHabits.update((map) => ({ ...map, [routineId]: habits }));
       return habits;

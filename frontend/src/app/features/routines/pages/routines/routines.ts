@@ -24,7 +24,7 @@ export class Routines {
   routines = signal<Routine[]>([]);
   readonly habitsListId = 'available-habits-list';
   readonly routineDropListIds = computed(() =>
-    this.routines().map((routine) => this.getRoutineDropListId(routine.id))
+    this.routines().map((routine) => this.getRoutineDropListId(routine.id)),
   );
   showAddDialog = signal(false);
   showEditDialog = signal(false);
@@ -32,7 +32,6 @@ export class Routines {
   routineHabits = signal<Record<string, Habit[]>>({});
   allHabits = this.habitService.getHabits;
   constructor() {
-    // Load routines
     this.routineService.routines$.subscribe(async (r) => {
       this.routines.set(r);
       await this.loadRoutineHabits(r);
