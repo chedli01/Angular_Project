@@ -26,7 +26,10 @@ export class RoutineCard {
   connectedDropLists = input<string[]>([]);
   private habitRoutineService = inject(HabitRoutineService);
   private syncHabitsEffect = effect(() => {
-    this.displayHabits.set(this.habits());
+    const routineId = this.routine().id;
+    const routinesMap = this.habitRoutineService.getRoutineHabits();
+    const serviceHabits = routinesMap ? routinesMap[routineId] : undefined;
+    this.displayHabits.set(serviceHabits ?? this.habits());
   });
   toggleMenu() {
     this.showMenu.set(!this.showMenu());
