@@ -1,4 +1,4 @@
-import { Component, inject, input, output, signal } from '@angular/core';
+import { Component, inject, input, output, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Routine } from '@app/shared/models/routine.model';
 import { ClickOutsideDirective } from '@app/shared/directives/click-outside.directive';
@@ -21,8 +21,12 @@ export class RoutineCard {
   toggleActive = output<string>();
   showMenu = signal(false);
   habits = input<Habit[]>([]);
+  displayHabits = signal<Habit[]>([]);
   dropListId = input.required<string>();
   private habitRoutineService = inject(HabitRoutineService);
+  private syncHabitsEffect = effect(() => {
+    this.displayHabits.set(this.habits());
+  });
   toggleMenu() {
     this.showMenu.set(!this.showMenu());
   }
@@ -47,10 +51,15 @@ export class RoutineCard {
   async onHabitDrop(event: CdkDragDrop<Habit[]>) {
     const habit = event.item.data as Habit;
 
-    const alreadyExists = this.habits().some((habitt) => habitt.id === habit.id);
+    const alreadyExists = this.displayHabits().some((habitt) => habitt.id === habit.id);
 
     if (alreadyExists) return;
-
-    await this.habitRoutineService.add(habit.id, this.routine().id);
+    this.displayHabits.update((list) => [...list, habit]);
+    try {
+      await this.habitRoutineService.add(habit.id, this.routine().id);
+    } catch (error) {
+      this.displayHabits.update((list) => list.filter((h) => h.id !== habit.id));
+      throw error;
+    }
   }
 }
