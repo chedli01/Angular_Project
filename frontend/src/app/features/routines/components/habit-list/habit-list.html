@@ -1,4 +1,4 @@
-<div class="max-w-md mx-auto space-y-4">
+<div class="max-w-md mx-auto space-y-4 mr-5">
   <!-- Header -->
   <div class="space-y-2">
     <h2 class="text-xl text-gray-900">All Habits</h2>
@@ -10,7 +10,7 @@
         type="text"
         placeholder="Search habits..."
         [(ngModel)]="search"
-        class="w-full pl-10 pr-4 py-3 rounded-xl border bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-200"
+        class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-200"
       />
     </div>
   </div>
@@ -22,7 +22,7 @@
     [cdkDropListConnectedTo]="connectedDropLists"
     (cdkDropListDropped)="onDrop($event)"
     cdkDropListSortingDisabled
-    class="space-y-3"
+    class="flex flex-col gap-1"
   >
     @for (habit of filteredHabits(); track habit.id) {
       <app-habit-routine [habit]="habit" />

@@ -86,7 +86,7 @@
     [id]="dropListId()"
     [cdkDropListConnectedTo]="connectedDropLists()"
     (cdkDropListDropped)="onHabitDrop($event)"
-    class="mt-4 space-y-3 rounded-xl border bg-gray-50 p-3 min-h-[120px]"
+    class="mt-4 space-y-3 rounded-xl border border-gray-300 bg-gray-50 p-3 min-h-[120px]"
   >
     @for (habit of displayHabits(); track habit.id) {
       <app-habit-routine [habit]="habit" />
