@@ -1,0 +1,69 @@
+import { Component, inject, input, output, signal, effect } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Routine } from '@app/shared/models/routine.model';
+import { ClickOutsideDirective } from '@app/shared/directives/click-outside.directive';
+import { CdkDropList, CdkDragDrop } from '@angular/cdk/drag-drop';
+import { Habit } from '@app/shared/models/habit.model';
+import { HabitRoutineComponent } from '../habit-routine/habit-routine';
+import { HabitRoutineService } from '@app/core/services/habit-routine.service';
+
+@Component({
+  selector: 'app-routine-card',
+  standalone: true,
+  imports: [CommonModule, ClickOutsideDirective, CdkDropList, HabitRoutineComponent],
+  templateUrl: './routine-card.html',
+  styleUrls: ['./routine-card.css'],
+})
+export class RoutineCard {
+  routine = input.required<Routine>();
+  delete = output<string>();
+  edit = output<Routine>();
+  toggleActive = output<string>();
+  showMenu = signal(false);
+  habits = input<Habit[]>([]);
+  displayHabits = signal<Habit[]>([]);
+  dropListId = input.required<string>();
+  connectedDropLists = input<string[]>([]);
+  private habitRoutineService = inject(HabitRoutineService);
+  private syncHabitsEffect = effect(() => {
+    const routineId = this.routine().id;
+    const routinesMap = this.habitRoutineService.getRoutineHabits();
+    const serviceHabits = routinesMap ? routinesMap[routineId] : undefined;
+    this.displayHabits.set(serviceHabits ?? this.habits());
+  });
+  toggleMenu() {
+    this.showMenu.set(!this.showMenu());
+  }
+
+  onEdit() {
+    this.edit.emit(this.routine());
+    this.showMenu.set(false);
+  }
+
+  onDelete() {
+    this.delete.emit(this.routine().id);
+    this.showMenu.set(false);
+  }
+
+  onToggleActive() {
+    this.toggleActive.emit(this.routine().id);
+  }
+
+  closeMenu() {
+    this.showMenu.set(false);
+  }
+  async onHabitDrop(event: CdkDragDrop<Habit[]>) {
+    const habit = event.item.data as Habit;
+
+    const alreadyExists = this.displayHabits().some((habitt) => habitt.id === habit.id);
+
+    if (alreadyExists) return;
+    this.displayHabits.update((list) => [...list, habit]);
+    try {
+      await this.habitRoutineService.add(habit.id, this.routine().id);
+    } catch (error) {
+      this.displayHabits.update((list) => list.filter((h) => h.id !== habit.id));
+      throw error;
+    }
+  }
+}

@@ -7,7 +7,7 @@
     (click)="$event.stopPropagation()"
   >
     <h2 class="text-2xl font-bold mb-6 text-gray-900">
-      Create Routine
+      Edit Routine
     </h2>
 
     <!-- Name -->
@@ -70,7 +70,7 @@
     </div>
 
     <!-- Custom Type (only if Custom) -->
-    <div class="mb-6" *ngIf="form().type === RoutineType.Custom">
+    <div class="mb-4" *ngIf="form().type === RoutineType.Custom">
       <label class="block text-sm font-medium text-gray-700 mb-1">
         Custom Type
       </label>
@@ -95,12 +95,12 @@
       </button>
 
       <button
-        (click)="createRoutine()"
+        (click)="updateRoutine()"
         [disabled]="!form().name.trim()"
         class="flex-1 rounded-xl py-3 bg-blue-600 text-white
                hover:bg-blue-700 transition disabled:opacity-50"
       >
-        Create
+        Save Changes
       </button>
     </div>
   </div>

@@ -1,0 +1,99 @@
+<div
+  class="border border-gray-300 rounded-xl p-6 relative transition-colors flex flex-col"
+  [class.bg-white]="routine().active"
+  [class.bg-gray-100]="!routine().active"
+  [class.opacity-75]="!routine().active"
+  (clickOutside)="closeMenu()"
+>
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <h3 class="text-2xl font-bold mb-3">{{ routine().name }}</h3>
+      <span
+        class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full border border-indigo-500 text-indigo-600 bg-indigo-500/10"
+      >
+        {{ routine().type }}
+      </span>
+    </div>
+    <div class="flex items-center gap-3">
+      <label class="flex items-center gap-2 cursor-pointer group">
+        <span
+          class="text-sm font-medium"
+          [class.text-gray-600]="!routine().active"
+          [class.text-green-700]="routine().active"
+        >
+          @if (routine().active) {
+            Active
+          } @else {
+            Inactive
+          }
+        </span>
+        <div class="relative">
+          <input
+            type="checkbox"
+            class="sr-only peer"
+            [checked]="routine().active"
+            (change)="onToggleActive()"
+          />
+          <div
+            class="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-colors"
+          ></div>
+          <div
+            class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5 shadow-sm"
+          ></div>
+        </div>
+      </label>
+      <div class="relative shrink-0">
+        <button
+          (click)="toggleMenu()"
+          class="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition"
+          title="More options"
+        >
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    @if (showMenu()) {
+      <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border z-10">
+        <button
+          (click)="onEdit()"
+          class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 transition"
+        >
+          <span class="text-lg">✏️</span>
+          <span class="text-sm font-medium">Edit Routine</span>
+        </button>
+        <button
+          (click)="onDelete()"
+          class="w-full text-left px-4 py-3 hover:bg-red-50 flex items-center gap-3 text-red-600 transition rounded-b-lg"
+        >
+          <span class="text-lg">🗑️</span>
+          <span class="text-sm font-medium">Delete Routine</span>
+        </button>
+      </div>
+    }
+  </div>
+
+  <div class="grow flex items-center">
+    <p class="text-gray-600 leading-relaxed text-base">{{ routine().description }}</p>
+  </div>
+  <!-- HABITS DROP ZONE -->
+  <div
+    cdkDropList
+    [id]="dropListId()"
+    [cdkDropListConnectedTo]="connectedDropLists()"
+    (cdkDropListDropped)="onHabitDrop($event)"
+    class="mt-4 space-y-3 rounded-xl border border-gray-300 bg-gray-50 p-3 min-h-[120px]"
+  >
+    @for (habit of displayHabits(); track habit.id) {
+      <app-habit-routine [habit]="habit" />
+    }
+
+    <div *ngIf="displayHabits().length === 0" class="text-sm text-gray-400 text-center py-6">
+      Drag habits here
+    </div>
+  </div>
+</div>

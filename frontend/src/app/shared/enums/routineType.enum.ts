@@ -1,4 +1,5 @@
 export enum RoutineType {
   Morning = 'morning',
-  Evening = 'evening'
+  Evening = 'evening',
+  Custom = 'custom'
 }

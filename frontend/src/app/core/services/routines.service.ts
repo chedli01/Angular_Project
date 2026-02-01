@@ -3,8 +3,6 @@ import { BehaviorSubject, from } from 'rxjs';
 import { supabase } from '../supabase/supabase.config';
 import { Routine, RoutineFormData } from '@app/shared/models/routine.model';
 import { AuthService } from './auth.service';
-import { IconKey } from '@app/shared/enums/iconKey.enum'; 
-import { ICON_MAP } from '@app/shared/constants/iconMap';
 
 @Injectable({
   providedIn: 'root',
@@ -25,24 +23,6 @@ export class RoutineService {
     });
   }
 
-  /** Get emoji for icon key */
-  getIconForKey(iconKey: IconKey): string {
-    return ICON_MAP[iconKey] || '✨';
-  }
-
-  /** Get all icon options for UI */
-  getIconOptions(): { key: IconKey; emoji: string; label: string }[] {
-    return Object.entries(IconKey).map(([label, key]) => ({
-      key: key as IconKey,
-      emoji: this.getIconForKey(key as IconKey),
-      label: this.formatLabel(label)
-    }));
-  }
-
-  private formatLabel(label: string): string {
-    return label.replace(/([A-Z])/g, ' $1').trim();
-  }
-
   private loadRoutines(userId: string) {
     from(
       supabase
@@ -61,10 +41,9 @@ export class RoutineService {
             id: r.id,
             name: r.name,
             description: r.description,
+            active: r.active,
             type: r.preferred_time as any,
-            iconKey: r.icon_key as IconKey || IconKey.Star,
-            icon: this.getIconForKey(r.icon_key as IconKey || IconKey.Star),
-            color: r.color || '#6366F1',
+            custom_time_text: r.custom_time_text,
             createdAt: new Date(r.created_at),
           }))
         );
@@ -79,9 +58,7 @@ export class RoutineService {
     const newRoutine: Routine = {
       ...formData,
       id: crypto.randomUUID(),
-      iconKey: formData.iconKey || IconKey.Star,
-      icon: this.getIconForKey(formData.iconKey || IconKey.Star),
-      color: '#6366F1',
+      active: true,
       createdAt: new Date(),
     };
 
@@ -94,7 +71,8 @@ export class RoutineService {
           name: newRoutine.name,
           description: newRoutine.description,
           preferred_time: newRoutine.type,
-          icon_key: newRoutine.iconKey,
+          custom_time_text: newRoutine.custom_time_text,
+          active: newRoutine.active,
           created_at: newRoutine.createdAt,
         },
       ])
@@ -108,6 +86,73 @@ export class RoutineService {
 
     this.routinesSubject.next([...this.routinesSubject.value, newRoutine]);
     return newRoutine;
+  }
+
+  async updateRoutine(id: string, formData: RoutineFormData) {
+    const userId = this.auth.userId();
+    if (!userId) throw new Error('User not authenticated');
+
+    const { data, error } = await supabase
+      .from('routines')
+      .update({
+        name: formData.name,
+        description: formData.description,
+        preferred_time: formData.type,
+        custom_time_text: formData.custom_time_text,
+      })
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Supabase update failed', error);
+      throw error;
+    }
+
+    // Update local state
+    const updatedRoutines = this.routinesSubject.value.map((routine) =>
+      routine.id === id
+        ? {
+            ...routine,
+            name: formData.name,
+            description: formData.description,
+            type: formData.type,
+            custom_time_text: formData.custom_time_text,
+          }
+        : routine
+    );
+
+    this.routinesSubject.next(updatedRoutines);
+    return data;
+  }
+
+  async toggleActiveRoutine(id: string) {
+    const userId = this.auth.userId();
+    if (!userId) throw new Error('User not authenticated');
+
+    const routine = this.routinesSubject.value.find((r) => r.id === id);
+    if (!routine) throw new Error('Routine not found');
+
+    const newActiveState = !routine.active;
+
+    const { error } = await supabase
+      .from('routines')
+      .update({ active: newActiveState })
+      .eq('id', id)
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('❌ Supabase toggle active failed', error);
+      throw error;
+    }
+
+    // Update local state
+    const updatedRoutines = this.routinesSubject.value.map((r) =>
+      r.id === id ? { ...r, active: newActiveState } : r
+    );
+
+    this.routinesSubject.next(updatedRoutines);
   }
 
   async deleteRoutine(id: string) {

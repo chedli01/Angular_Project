@@ -1,22 +1,26 @@
-import { Component, inject, signal, computed, output } from '@angular/core';
+import { Component, inject, signal, input, output, effect } from '@angular/core';
 import { RoutineService } from '@app/core/services/routines.service';
+import { Routine } from '@app/shared/models/routine.model';
 import { RoutineType } from '@app/shared/enums/routineType.enum';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-add-routine',
+  selector: 'app-edit-routine',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './add-routine.html',
+  templateUrl: './edit-routine.html',
 })
-export class AddRoutine {
+export class EditRoutine {
   private routineService = inject(RoutineService);
+
+  // Input: the routine to edit
+  routine = input.required<Routine>();
 
   // Outputs to communicate with parent
   close = output<void>();
-  routineCreated = output<void>();
+  routineUpdated = output<void>();
 
-  // Form state
+  // Form state initialized from the input routine
   form = signal({
     name: '',
     description: '',
@@ -25,8 +29,22 @@ export class AddRoutine {
     active: true,
   });
 
-  // Constants and Helpers
+  // Constants
   RoutineType = RoutineType;
+
+  constructor() {
+    // Initialize form with routine data when component loads
+    effect(() => {
+      const r = this.routine();
+      this.form.set({
+        name: r.name,
+        description: r.description || '',
+        type: r.type,
+        custom_time_text: r.custom_time_text || '',
+        active: r.active,
+      });
+    });
+  }
 
   updateName(value: string) {
     this.form.update((f) => ({ ...f, name: value }));
@@ -47,15 +65,16 @@ export class AddRoutine {
   updateCustomType(value: string) {
     this.form.update((f) => ({ ...f, custom_time_text: value }));
   }
-  
-  async createRoutine() {
+
+  async updateRoutine() {
     if (!this.form().name.trim()) return;
+    
     try {
-      await this.routineService.addRoutine(this.form());
-      this.routineCreated.emit();
+      await this.routineService.updateRoutine(this.routine().id, this.form());
+      this.routineUpdated.emit();
       this.close.emit();
     } catch (error) {
-      console.error('Failed to create routine', error);
+      console.error('Failed to update routine', error);
     }
   }
 

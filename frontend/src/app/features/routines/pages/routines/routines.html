@@ -1,50 +1,50 @@
-<div class="p-8 max-w-4xl mx-auto">
-  <h1 class="text-3xl font-bold mb-6">Routine Builder</h1>
-  <h4>Group habits into focused routines</h4>
-
-  <div class="space-y-3 mb-6">
-    @for (routine of routines(); track routine.id) {
-      <div
-        class="bg-white border rounded-xl p-4 flex items-center justify-between gap-4"
-      >
-        <div class="flex items-center gap-4">
-          <div
-            class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
-            [style.backgroundColor]="routine.color + '20'"
-          >
-            {{ routine.icon }}
-          </div>
-
-          <div>
-            <h3 class="font-semibold">{{ routine.name }}</h3>
-            <p class="text-sm text-gray-600">{{ routine.description }}</p>
-          </div>
-        </div>
-
-        <!-- Delete button -->
-        <button
-          (click)="deleteRoutine(routine.id)"
-          class="text-red-500 hover:text-red-700 text-xl p-2 rounded-full transition"
-          title="Delete Routine"
-        >
-          🗑️
-        </button>
-      </div>
-    }
+<div class="p-8 max-w-6xl mx-auto">
+  <div class="flex justify-between items-center">
+    <div>
+      <h1 class="text-3xl font-bold mb-6">Routine Builder</h1>
+      <h4 class="mb-8 text-gray-600">Group habits into focused routines</h4>
+    </div>
+    <button
+      (click)="openAddDialog()"
+      class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+    >
+      ➕ Create Routine
+    </button>
   </div>
-
-  <button
-    (click)="openAddDialog()"
-    class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-  >
-    ➕ Create Routine
-  </button>
+  <div class="flex">
+    <div class="w-1/3">
+      <app-habits-list
+        [habits]="allHabits()"
+        [dropListId]="habitsListId"
+        [connectedDropLists]="routineDropListIds()"
+      />
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
+      @for (routine of routines(); track routine.id) {
+        <app-routine-card
+          [routine]="routine"
+          (delete)="deleteRoutine($event)"
+          (edit)="editRoutine($event)"
+          (toggleActive)="toggleActiveRoutine($event)"
+          [habits]="routineHabits()[routine.id] || []"
+          [dropListId]="getRoutineDropListId(routine.id)"
+          [connectedDropLists]="[habitsListId]"
+        />
+      }
+    </div>
+  </div>
 </div>
 
-<!-- Use the new component here -->
+<!-- Add Routine Dialog -->
 @if (showAddDialog()) {
-  <app-add-routine 
-    (close)="closeAddDialog()" 
-    (routineCreated)="closeAddDialog()"
+  <app-add-routine (close)="closeAddDialog()" (routineCreated)="closeAddDialog()" />
+}
+
+<!-- Edit Routine Dialog -->
+@if (showEditDialog() && routineToEdit()) {
+  <app-edit-routine
+    [routine]="routineToEdit()!"
+    (close)="closeEditDialog()"
+    (routineUpdated)="closeEditDialog()"
   />
 }
