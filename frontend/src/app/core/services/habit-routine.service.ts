@@ -24,7 +24,7 @@ export class HabitRoutineService {
 
     try {
       const { data, error } = await supabase
-        .from('habit_routines')
+        .from('routine_habits')
         .select('*, habits(*)') // join habits table to get full habit info
         .eq('routine_id', routineId);
 
@@ -48,7 +48,7 @@ export class HabitRoutineService {
   async add(habitId: string, routineId: string): Promise<void> {
     try {
       const { data, error } = await supabase
-        .from('habit_routines')
+        .from('routine_habits')
         .insert({ habit_id: habitId, routine_id: routineId })
         .select('*, habits(*)')
         .single();
@@ -71,7 +71,7 @@ export class HabitRoutineService {
    */
   async delete(id: string, routineId: string): Promise<void> {
     try {
-      const { error } = await supabase.from('habit_routines').delete().eq('id', id);
+      const { error } = await supabase.from('routine_habits').delete().eq('id', id);
       if (error) throw error;
 
       this.routineHabits.update((map) => ({
