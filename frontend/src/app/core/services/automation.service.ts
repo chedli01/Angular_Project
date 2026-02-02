@@ -1,28 +1,36 @@
-// automation.service.ts
-
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { BehaviorSubject, from } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { supabase } from '../supabase/supabase.config';
 import { AutomationRule, TriggerType, ActionType } from '@app/shared/models/automation.model';
 import { AuthService } from './auth.service';
+import { RoutineService } from './routines.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AutomationService {
+  private auth = inject(AuthService);
+  private routineService = inject(RoutineService);
 
   private rulesSubject = new BehaviorSubject<AutomationRule[]>([]);
   rules$ = this.rulesSubject.asObservable();
+  
+  rules = toSignal(this.rules$, { initialValue: [] as AutomationRule[] });
 
-  constructor(private auth: AuthService) {
+  private toastsSubject = new BehaviorSubject<any[]>([]);
+  toasts$ = this.toastsSubject.asObservable();
+  toasts = toSignal(this.toasts$, { initialValue: [] as any[] });
+
+  constructor() {
     this.loadRules();
   }
 
-  // ─── CRUD ────────────────────────────────────────────────────────────
-
   async loadRules() {
-    const userId = this.auth.userId();
+    const userId = typeof this.auth.userId === 'function' ? this.auth.userId() : (this.auth as any).userId;
+    
     if (!userId) {
+      console.warn('⚠️ No userId found during loadRules. If this is on refresh, AuthService might still be initializing.');
       this.rulesSubject.next([]);
       return;
     }
@@ -42,7 +50,7 @@ export class AutomationService {
   }
 
   async createRule(rule: Omit<AutomationRule, 'id' | 'user_id' | 'created_at' | 'updated_at'>) {
-    const userId = this.auth.userId();
+    const userId = typeof this.auth.userId === 'function' ? this.auth.userId() : (this.auth as any).userId;
     if (!userId) throw new Error('User not authenticated');
 
     const now = new Date().toISOString();
@@ -97,12 +105,94 @@ export class AutomationService {
     );
   }
 
-  // ─── EVALUATION ENGINE ───────────────────────────────────────────────
+  async checkAllRules() {
+    const userId = typeof this.auth.userId === 'function' ? this.auth.userId() : (this.auth as any).userId;
+    if (!userId) return;
 
-  /**
-   * Call this whenever a habit is completed or missed.
-   * It checks all enabled rules and fires actions if conditions are met.
-   */
+    const rules = this.rulesSubject.getValue().filter(r => r.enabled);
+    const today = new Date().toISOString().split('T')[0];
+
+    for (const rule of rules) {
+      const lastFired = this.getLastFiredDate(rule.id);
+      if (lastFired === today) {
+        continue;
+      }
+
+      const conditionMet = await this.checkCondition(rule);
+      if (conditionMet) {
+        await this.executeAction(rule);
+        this.markRuleFired(rule.id, today);
+      }
+    }
+  }
+
+  private async checkCondition(rule: AutomationRule): Promise<boolean> {
+    const { trigger, condition } = rule;
+    const { times, in_days } = condition;
+
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setDate(startDate.getDate() - in_days);
+
+    const startDateStr = startDate.toISOString().split('T')[0];
+    const todayStr = today.toISOString().split('T')[0];
+
+    const { data, error } = await supabase
+      .from('habit_completions')
+      .select('*')
+      .eq('habit_id', trigger.habit_id)
+      .gte('date', startDateStr)
+      .lte('date', todayStr);
+
+    if (error) {
+      console.error('❌ Supabase check condition failed', error);
+      return false;
+    }
+
+    let count = 0;
+    if (trigger.type === TriggerType.HABIT_MISSED) {
+      const completedDates = new Set(
+        (data || []).filter((c: any) => c.completed).map((c: any) => c.date)
+      );
+
+      for (let i = 0; i < in_days; i++) {
+        const checkDate = new Date(today);
+        checkDate.setDate(checkDate.getDate() - i);
+        const checkDateStr = checkDate.toISOString().split('T')[0];
+        
+        if (!completedDates.has(checkDateStr)) {
+          count++;
+        }
+      }
+    } else {
+      count = (data || []).filter((c: any) => c.completed).length;
+    }
+
+    return count >= times;
+  }
+
+  private async executeAction(rule: AutomationRule) {
+    const { action } = rule;
+
+    switch (action.type) {
+      case ActionType.SHOW_ALERT:
+        this.showToast(action.message || 'Automation rule triggered!', 'alert');
+        break;
+
+      case ActionType.SEND_NOTIFICATION:
+        this.sendBrowserNotification(action.message || 'Automation rule triggered!');
+        this.showToast(action.message || 'Automation rule triggered!', 'notification');
+        break;
+
+      case ActionType.DISABLE_ROUTINE:
+        if (action.routine_id) {
+          await this.routineService.toggleActiveRoutine(action.routine_id);
+          this.showToast(`Routine disabled by automation rule: ${rule.name}`, 'alert');
+        }
+        break;
+    }
+  }
+
   async checkHabitEvent(habitId: string, completed: boolean, date: Date) {
     const rules = this.rulesSubject.getValue().filter(r => r.enabled);
 
@@ -113,72 +203,54 @@ export class AutomationService {
 
       if (!triggerMatches) continue;
 
-      const conditionMet = await this.checkCondition(rule, habitId, date);
+      const conditionMet = await this.checkCondition(rule);
       if (conditionMet) {
         await this.executeAction(rule);
       }
     }
   }
 
-  /**
-   * Checks: "has this habit been missed/completed X times in Y days?"
-   */
-  private async checkCondition(rule: AutomationRule, habitId: string, date: Date): Promise<boolean> {
-    const { times, in_days } = rule.condition;
+  private showToast(message: string, type: 'alert' | 'notification') {
+    const toast = {
+      id: crypto.randomUUID(),
+      message,
+      type,
+      createdAt: new Date()
+    };
 
-    const startDate = new Date(date);
-    startDate.setDate(startDate.getDate() - in_days);
-
-    const { data, error } = await supabase
-      .from('habit_completions')
-      .select('*')
-      .eq('habit_id', habitId)
-      .gte('date', startDate.toISOString().split('T')[0])
-      .lte('date', date.toISOString().split('T')[0]);
-
-    if (error) {
-      console.error('❌ Supabase check condition failed', error);
-      return false;
-    }
-
-    // Count based on trigger type
-    const isMissedTrigger = rule.trigger.type === TriggerType.HABIT_MISSED;
-    const count = isMissedTrigger
-      ? (data?.filter(d => !d.completed).length || 0)
-      : (data?.filter(d => d.completed).length || 0);
-
-    return count >= times;
+    this.toastsSubject.next([...this.toastsSubject.value, toast]);
+    setTimeout(() => this.removeToast(toast.id), 8000);
   }
 
-  private async executeAction(rule: AutomationRule) {
-    const { action } = rule;
+  removeToast(id: string) {
+    this.toastsSubject.next(this.toastsSubject.value.filter(t => t.id !== id));
+  }
 
-    switch (action.type) {
-      case ActionType.SHOW_ALERT:
-        alert(action.message || 'Automation rule triggered!');
-        break;
-
-      case ActionType.SEND_NOTIFICATION:
-        if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification('Habit Automation', {
-            body: action.message || 'A rule has been triggered!',
-            icon: '/favicon.ico'
-          });
-        }
-        break;
-
-      case ActionType.DISABLE_ROUTINE:
-        if (action.routine_id) {
-          const { error } = await supabase
-            .from('routines')
-            .update({ active: false })
-            .eq('id', action.routine_id);
-
-          if (error) {
-            console.error('❌ Supabase disable routine failed', error);
+  private sendBrowserNotification(message: string) {
+    if ('Notification' in window) {
+      if (Notification.permission === 'granted') {
+        new Notification('Habit Automation', {
+          body: message,
+          icon: '/favicon.ico'
+        });
+      } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            new Notification('Habit Automation', {
+              body: message,
+              icon: '/favicon.ico'
+            });
           }
-        }
-        break;
+        });
+      }
     }
+  }
+
+  private getLastFiredDate(ruleId: string): string | null {
+    return localStorage.getItem(`rule_fired_${ruleId}`);
+  }
+
+  private markRuleFired(ruleId: string, date: string) {
+    localStorage.setItem(`rule_fired_${ruleId}`, date);
   }
 }

@@ -1,5 +1,3 @@
-// automation.model.ts
-
 export enum TriggerType {
   HABIT_MISSED = 'habit_missed',
   HABIT_COMPLETED = 'habit_completed'

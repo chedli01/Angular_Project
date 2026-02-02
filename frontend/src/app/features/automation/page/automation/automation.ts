@@ -1,10 +1,10 @@
-// automation.component.ts
-
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { AutomationService } from '@app/core/services/automation.service';
 import { RoutineService } from '@app/core/services/routines.service';
 import { HabitDataService } from '@app/core/services/habit-data.service';
+import { AuthService } from '@app/core/services/auth.service';
 import { AutomationRule, TriggerType, ActionType } from '@app/shared/models/automation.model';
 import { Routine } from '@app/shared/models/routine.model';
 
@@ -15,22 +15,22 @@ import { Routine } from '@app/shared/models/routine.model';
   templateUrl: './automation.html',
   styleUrls: ['./automation.css']
 })
-export class AutomationComponent implements OnInit {
+export class AutomationComponent {
   private automationService = inject(AutomationService);
   private routineService = inject(RoutineService);
   private habitService = inject(HabitDataService);
+  private auth = inject(AuthService);
 
   // Expose enums to template
   readonly TriggerType = TriggerType;
   readonly ActionType = ActionType;
 
-  rules = signal<AutomationRule[]>([]);
+  rules = this.automationService.rules;
   habits = this.habitService.getHabits;
-  routines = signal<Routine[]>([]);
+  routines = toSignal(this.routineService.routines$, { initialValue: [] as Routine[] });
 
   showCreateDialog = signal(false);
 
-  // ─── Form state ──────────────────────────────────────────────────────
   form = signal({
     name: '',
     trigger_type: TriggerType.HABIT_MISSED as TriggerType,
@@ -42,22 +42,24 @@ export class AutomationComponent implements OnInit {
     action_message: ''
   });
 
-  ngOnInit() {
-    this.automationService.rules$.subscribe(rules => this.rules.set(rules));
-    this.routineService.routines$.subscribe(routines => this.routines.set(routines));
+  constructor() {
+    effect(() => {
+      const userId = this.auth.userId();
+      if (userId) {
+        console.log('🔄 User authenticated, loading automation rules...');
+        this.automationService.loadRules();
+      }
+    });
   }
 
-  // ─── Form helpers ────────────────────────────────────────────────────
   updateForm(field: keyof ReturnType<typeof this.form>, value: any) {
     this.form.update(f => ({ ...f, [field]: value }));
   }
 
-  // Show routine select only when action is DISABLE_ROUTINE
   actionNeedsRoutine(): boolean {
     return this.form().action_type === ActionType.DISABLE_ROUTINE;
   }
 
-  // Show message input only when action is SHOW_ALERT or SEND_NOTIFICATION
   actionNeedsMessage(): boolean {
     return this.form().action_type === ActionType.SHOW_ALERT ||
            this.form().action_type === ActionType.SEND_NOTIFICATION;
@@ -73,7 +75,6 @@ export class AutomationComponent implements OnInit {
     return true;
   }
 
-  // ─── Dialog ──────────────────────────────────────────────────────────
   openCreateDialog() {
     this.showCreateDialog.set(true);
   }
@@ -92,7 +93,6 @@ export class AutomationComponent implements OnInit {
     });
   }
 
-  // ─── Actions ─────────────────────────────────────────────────────────
   async createRule() {
     if (!this.isFormValid()) return;
 
@@ -131,13 +131,13 @@ export class AutomationComponent implements OnInit {
     await this.automationService.toggleRule(id, enabled);
   }
 
-  // ─── Display helpers ─────────────────────────────────────────────────
   getHabitName(id?: string): string {
     return this.habits().find(h => h.id === id)?.name || 'Unknown';
   }
 
   getRoutineName(id?: string): string {
-    return this.routines().find(r => r.id === id)?.name || 'Unknown';
+    const routines = this.routines();
+    return (routines || []).find(r => r.id === id)?.name || 'Unknown';
   }
 
   getRuleDescription(rule: AutomationRule): string {
