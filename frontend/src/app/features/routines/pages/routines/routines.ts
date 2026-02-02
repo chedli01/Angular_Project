@@ -1,11 +1,10 @@
-import { Component, inject, signal, computed, effect } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { RoutineService } from '@app/core/services/routines.service';
 import { Routine } from '@app/shared/models/routine.model';
 import { AddRoutine } from '../../components/add-routine/add-routine';
 import { EditRoutine } from '../../components/edit-routine/edit-routine';
 import { RoutineCard } from '../../components/routine-card/routine-card';
 import { CommonModule } from '@angular/common';
-import { Habit } from '@app/shared/models/habit.model';
 import { HabitListComponent } from '../../components/habit-list/habit-list';
 import { HabitDataService } from '@app/core/services/habit-data.service';
 
@@ -19,20 +18,19 @@ import { HabitDataService } from '@app/core/services/habit-data.service';
 export class Routines {
   private routineService = inject(RoutineService);
   private habitService = inject(HabitDataService);
-  routines = signal<Routine[]>([]);
-  readonly habitsListId = 'available-habits-list';
-  readonly routineDropListIds = computed(() =>
-    this.routines().map((routine) => this.getRoutineDropListId(routine.id)),
-  );
+
   showAddDialog = signal(false);
   showEditDialog = signal(false);
   routineToEdit = signal<Routine | null>(null);
-  allHabits = this.habitService.getHabits;
-  constructor() {
-    this.routineService.routines$.subscribe(async (r) => {
-      this.routines.set(r);
-    });
-  }
+
+  readonly routines = this.routineService.routines;
+  readonly routinesLoading = this.routineService.isLoading;
+  readonly allHabits = this.habitService.getHabits;
+  readonly habitsListId = 'available-habits-list';
+  readonly routineDropListIds = computed(() => {
+    const list = this.routines();
+    return list ? list.map((r) => this.getRoutineDropListId(r.id)) : [];
+  });
 
   openAddDialog() {
     this.showAddDialog.set(true);
