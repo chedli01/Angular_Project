@@ -1,4 +1,4 @@
-import { Component, inject, input, output, signal, computed } from '@angular/core';
+import { Component, inject, input, output, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Routine } from '@app/shared/models/routine.model';
 import { ClickOutsideDirective } from '@app/shared/directives/click-outside.directive';
@@ -14,7 +14,7 @@ import { HabitRoutineService } from '@app/core/services/habit-routine.service';
   templateUrl: './routine-card.html',
   styleUrls: ['./routine-card.css'],
 })
-export class RoutineCard {
+export class RoutineCard implements OnInit {
   routine = input.required<Routine>();
   delete = output<string>();
   edit = output<Routine>();
@@ -22,10 +22,14 @@ export class RoutineCard {
   showMenu = signal(false);
   dropListId = input.required<string>();
   connectedDropLists = input<string[]>([]);
-
+  habits = computed(() => this.habitRoutineService.getRoutineHabits()[this.routine().id] || []);
   private habitRoutineService = inject(HabitRoutineService);
 
-  habits = input<Habit[]>([]);
+  ngOnInit() {
+    if (this.routine) {
+      this.habitRoutineService.loadByRoutine(this.routine().id);
+    }
+  }
 
   toggleMenu() {
     this.showMenu.set(!this.showMenu());

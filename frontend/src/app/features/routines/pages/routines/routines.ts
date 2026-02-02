@@ -30,18 +30,9 @@ export class Routines {
   showEditDialog = signal(false);
   routineToEdit = signal<Routine | null>(null);
   allHabits = this.habitService.getHabits;
-  routineHabits = computed(() => this.habitRoutineService.getRoutineHabits());
   constructor() {
     this.routineService.routines$.subscribe(async (r) => {
       this.routines.set(r);
-    });
-    effect(() => {
-      const routines = this.routines();
-
-      if (routines.length === 0) return;
-      for (const routine of routines) {
-        this.habitRoutineService.loadByRoutine(routine.id);
-      }
     });
   }
 

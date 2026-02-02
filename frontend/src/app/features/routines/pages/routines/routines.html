@@ -28,7 +28,6 @@
               (delete)="deleteRoutine($event)"
               (edit)="editRoutine($event)"
               (toggleActive)="toggleActiveRoutine($event)"
-              [habits]="routineHabits()[routine.id] || []"
               [dropListId]="getRoutineDropListId(routine.id)"
               [connectedDropLists]="[habitsListId]"
             />
