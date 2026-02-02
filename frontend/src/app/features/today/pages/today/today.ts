@@ -2,8 +2,10 @@ import { Component, inject, computed, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { HabitDataService } from '../../../../core/services/habit-data.service';
-import { HabitFormData } from '../../../../shared/models/habit.model';
+import { HabitFormData, HabitWithStatus } from '../../../../shared/models/habit.model';
 import { AddHabitDialog } from '../../components/add-habit-dialog/add-habit-dialog';
+import { RoutineService } from '@app/core/services/routines.service';
+import { HabitRoutineService } from '@app/core/services/habit-routine.service';
 
 @Component({
   selector: 'app-today',
@@ -13,12 +15,25 @@ import { AddHabitDialog } from '../../components/add-habit-dialog/add-habit-dial
 })
 export class Today {
   public habitService = inject(HabitDataService);
+  private routineService = inject(RoutineService);
+  private habitRoutineService = inject(HabitRoutineService);
   private router = inject(Router);
 
-  habits = this.habitService.getHabits;
   loading = this.habitService.getLoading;
   error = this.habitService.getError;
+  routines = this.routineService.routines;
   showAddDialog = signal(false);
+
+  selectedRoutineId = signal<string | null>(null);
+
+  habits = signal<HabitWithStatus[]>([]);
+  constructor() {
+    effect(() => {
+      if (!this.selectedRoutineId()) {
+        this.habits.set(this.habitService.getHabits() ?? []);
+      }
+    });
+  }
 
   completedToday = computed(() => this.habits().filter((h) => h.completed).length);
 
@@ -61,5 +76,21 @@ export class Today {
   async onAddHabit(formData: HabitFormData) {
     await this.habitService.addHabit(formData);
     this.closeAddDialog();
+  }
+  async loadRoutineHabitsWithStatus(routineId: string) {
+    const habits = this.habitRoutineService.getRoutineSignal(routineId)() ?? [];
+
+    const mapped = await Promise.all(habits.map((h) => this.habitService.mapToHabitWithStatus(h)));
+
+    this.habits.set(mapped);
+  }
+
+  async selectRoutine(routineId: string | null) {
+    this.selectedRoutineId.set(routineId);
+
+    if (!routineId) return;
+
+    await this.habitRoutineService.loadByRoutine(routineId);
+    await this.loadRoutineHabitsWithStatus(routineId);
   }
 }

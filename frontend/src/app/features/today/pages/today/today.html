@@ -5,31 +5,63 @@
       <p class="text-gray-600">Small steps, consistently.</p>
     </div>
   </header>
+  <div class="flex gap-2 mb-6 flex-wrap">
+    <button
+      class="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border"
+      [class.border-blue-600]="!selectedRoutineId()"
+      [class.text-blue-600]="!selectedRoutineId()"
+      [class.bg-blue-600]="!selectedRoutineId()"
+      [class.text-white]="!selectedRoutineId()"
+      (click)="selectRoutine(null)"
+    >
+      All
+    </button>
+
+    @for (routine of routines(); track routine.id) {
+      <button
+        class="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border"
+        [class.border-blue-600]="selectedRoutineId() !== routine.id"
+        [class.text-blue-600]="selectedRoutineId() !== routine.id"
+        [class.bg-blue-600]="selectedRoutineId() === routine.id"
+        [class.text-white]="selectedRoutineId() === routine.id"
+        (click)="selectRoutine(routine.id)"
+      >
+        {{ routine.name }}
+      </button>
+    }
+  </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <div class="lg:col-span-2">
       @if (habits().length === 0) {
         <div class="bg-white border border-gray-200 rounded-xl p-16 text-center">
-          <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div
+            class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4"
+          >
             <span class="text-3xl">📋</span>
           </div>
           <h3 class="text-xl font-semibold text-gray-900 mb-2">No habits yet</h3>
           <p class="text-gray-600 mb-6">Create your first habit to get started on your journey</p>
-          <button 
+          <button
             (click)="openAddDialog()"
-            class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+            class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          >
             Create First Habit
           </button>
         </div>
       } @else {
         <div class="space-y-3">
           @for (habit of habits(); track habit.id) {
-            <div class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-lg transition cursor-pointer"
-                 (click)="onHabitClick(habit.id)">
+            <div
+              class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-lg transition cursor-pointer"
+              (click)="onHabitClick(habit.id)"
+            >
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4 flex-1">
-                  <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
-                       [style.backgroundColor]="habit.color + '20'">
+                  <div
+                    class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+                    [style.backgroundColor]="habit.color + '20'"
+                  >
                     {{ habit.icon }}
                   </div>
                   <div class="flex-1">
@@ -44,7 +76,7 @@
                 </div>
 
                 <div class="flex items-center gap-2" (click)="$event.stopPropagation()">
-                  <button 
+                  <button
                     (click)="onToggleHabit(habit.id)"
                     class="px-4 py-2 rounded-lg font-medium transition"
                     [class.bg-green-500]="habit.completed"
@@ -52,12 +84,14 @@
                     [class.bg-gray-100]="!habit.completed"
                     [class.text-gray-700]="!habit.completed"
                     [class.hover:bg-green-600]="habit.completed"
-                    [class.hover:bg-gray-200]="!habit.completed">
+                    [class.hover:bg-gray-200]="!habit.completed"
+                  >
                     {{ habit.completed ? '✓ Done' : 'Mark Done' }}
                   </button>
-                  <button 
+                  <button
                     (click)="onDeleteHabit(habit.id)"
-                    class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
+                    class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                  >
                     🗑️
                   </button>
                 </div>
@@ -81,13 +115,14 @@
             </p>
           </div>
         </div>
-        
+
         <div class="h-3 bg-gray-100 rounded-full overflow-hidden">
-          <div class="h-full bg-green-500 transition-all duration-500"
-               [style.width.%]="progressPercent()">
-          </div>
+          <div
+            class="h-full bg-green-500 transition-all duration-500"
+            [style.width.%]="progressPercent()"
+          ></div>
         </div>
-        
+
         <p class="text-xs text-gray-500 mt-2">
           @if (completedToday() === totalHabits() && totalHabits() > 0) {
             All habits completed! 🎉
@@ -116,22 +151,22 @@
       <div class="bg-linear-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-4">
         <p class="text-sm font-semibold text-gray-900 mb-1">💡 Quick tip</p>
         <p class="text-xs text-gray-700">
-          Consistency beats intensity. Focus on showing up every day,
-          even if it's just for a few minutes.
+          Consistency beats intensity. Focus on showing up every day, even if it's just for a few
+          minutes.
         </p>
       </div>
     </div>
   </div>
 
-  <button 
+  <button
     (click)="openAddDialog()"
-    class="fixed bottom-8 right-8 w-16 h-16 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 hover:shadow-xl transition flex items-center justify-center text-3xl z-50">
+    class="fixed bottom-8 right-8 w-16 h-16 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 hover:shadow-xl transition flex items-center justify-center text-3xl z-50"
+  >
     +
   </button>
 
   @if (showAddDialog()) {
-    <app-add-habit-dialog
-      (close)="closeAddDialog()"
-      (submit)="onAddHabit($event)">
+    <app-add-habit-dialog (close)="closeAddDialog()" (submit)="onAddHabit($event)">
     </app-add-habit-dialog>
   }
+</div>

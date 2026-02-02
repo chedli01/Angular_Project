@@ -54,7 +54,7 @@ export class HabitDataService {
     return streak;
   }
 
-  private async mapToHabitWithStatus(habit: Habit): Promise<HabitWithStatus> {
+  async mapToHabitWithStatus(habit: Habit): Promise<HabitWithStatus> {
     const todayDate = this.getTodayDate();
 
     const { data: completions, error } = await supabase
