@@ -25,7 +25,7 @@ export class HabitListComponent {
 
     return this.habits.filter(
       (habit) =>
-        habit.name.toLowerCase().startsWith(q) || habit.description?.toLowerCase().startsWith(q),
+        habit.name.toLowerCase().includes(q) || habit.description?.toLowerCase().includes(q),
     );
   }
 
