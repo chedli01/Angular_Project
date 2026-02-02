@@ -4,13 +4,16 @@
 
   <div class="content">
     <div class="card">
-      <app-calendar [selectedDay]="selectedDay" (daySelected)="onDaySelected($event)"></app-calendar>
+      <app-calendar
+        [selectedDay]="selectedDay()"
+        (daySelected)="onDaySelected($event)"
+      ></app-calendar>
     </div>
 
     <div class="card">
       <app-day-summary
-        [selectedDay]="selectedDay"
-        (clearRequested)="selectedDay = null"
+        [selectedDay]="selectedDay()"
+        (clearRequested)="selectedDay.set(null)"
       ></app-day-summary>
     </div>
   </div>
