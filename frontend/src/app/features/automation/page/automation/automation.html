@@ -12,70 +12,78 @@
     </button>
   </div>
 
-  <!-- Rules List -->
+  <!-- Rules List with Resource States -->
   <div class="grid gap-4">
-    @for (rule of rules(); track rule.id) {
-      <div
-        class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm transition-colors"
-        [class.opacity-60]="!rule.enabled"
-      >
-        <div class="flex items-start justify-between gap-4">
-          <!-- Content -->
-          <div class="flex-1">
-            <div class="flex items-center gap-3 mb-3">
-              <h3 class="text-lg font-semibold">{{ rule.name }}</h3>
-              <span
-                class="px-3 py-1 text-xs font-medium rounded-full"
-                [class.bg-green-100]="rule.enabled"
-                [class.text-green-800]="rule.enabled"
-                [class.bg-gray-100]="!rule.enabled"
-                [class.text-gray-600]="!rule.enabled"
-              >
-                {{ rule.enabled ? 'Active' : 'Inactive' }}
-              </span>
+    @if (isLoading()) {
+      <!-- État de chargement -->
+      <div class="flex flex-col items-center justify-center py-20 text-gray-500">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
+        <p>Loading automation rules...</p>
+      </div>
+    } @else {
+      @for (rule of rules(); track rule.id) {
+        <div
+          class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm transition-colors"
+          [class.opacity-60]="!rule.enabled"
+        >
+          <div class="flex items-start justify-between gap-4">
+            <!-- Content -->
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-3">
+                <h3 class="text-lg font-semibold">{{ rule.name }}</h3>
+                <span
+                  class="px-3 py-1 text-xs font-medium rounded-full"
+                  [class.bg-green-100]="rule.enabled"
+                  [class.text-green-800]="rule.enabled"
+                  [class.bg-gray-100]="!rule.enabled"
+                  [class.text-gray-600]="!rule.enabled"
+                >
+                  {{ rule.enabled ? 'Active' : 'Inactive' }}
+                </span>
+              </div>
+
+              <!-- Human readable description -->
+              <p class="text-gray-700 text-sm">{{ getRuleDescription(rule) }}</p>
             </div>
 
-            <!-- Human readable description -->
-            <p class="text-gray-700 text-sm">{{ getRuleDescription(rule) }}</p>
-          </div>
+            <!-- Controls -->
+            <div class="flex items-center gap-3 shrink-0">
+              <!-- Toggle -->
+              <label class="relative cursor-pointer">
+                <input
+                  type="checkbox"
+                  class="sr-only peer"
+                  [checked]="rule.enabled"
+                  (change)="toggleRule(rule.id, !rule.enabled)"
+                />
+                <div class="w-10 h-5 bg-gray-300 rounded-full peer peer-checked:bg-indigo-600 transition-colors"></div>
+                <div class="absolute left-1 top-1 w-3 h-3 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+              </label>
 
-          <!-- Controls -->
-          <div class="flex items-center gap-3 shrink-0">
-            <!-- Toggle -->
-            <label class="relative cursor-pointer">
-              <input
-                type="checkbox"
-                class="sr-only peer"
-                [checked]="rule.enabled"
-                (change)="toggleRule(rule.id, !rule.enabled)"
-              />
-              <div class="w-10 h-5 bg-gray-300 rounded-full peer peer-checked:bg-indigo-600 transition-colors"></div>
-              <div class="absolute left-1 top-1 w-3 h-3 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
-            </label>
-
-            <!-- Delete -->
-            <button
-              (click)="deleteRule(rule.id)"
-              class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-              title="Delete rule"
-            >
-              🗑️
-            </button>
+              <!-- Delete -->
+              <button
+                (click)="deleteRule(rule.id)"
+                class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                title="Delete rule"
+              >
+                🗑️
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    } @empty {
-      <div class="text-center py-16 border-2 border-dashed border-gray-300 rounded-xl">
-        <div class="text-5xl mb-4">🤖</div>
-        <h3 class="text-lg font-semibold text-gray-900 mb-2">No automation rules yet</h3>
-        <p class="text-gray-500 mb-6">Create a rule to automate actions when habits are missed or completed</p>
-        <button
-          (click)="openCreateDialog()"
-          class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-        >
-          Create Rule
-        </button>
-      </div>
+      } @empty {
+        <div class="text-center py-16 border-2 border-dashed border-gray-300 rounded-xl">
+          <div class="text-5xl mb-4">🤖</div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">No automation rules yet</h3>
+          <p class="text-gray-500 mb-6">Create a rule to automate actions when habits are missed or completed</p>
+          <button
+            (click)="openCreateDialog()"
+            class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+          >
+            Create Rule
+          </button>
+        </div>
+      }
     }
   </div>
 </div>
@@ -105,142 +113,109 @@
         />
       </div>
 
-      <!-- ─── TRIGGER ────────────────────────────────────────────────── -->
+      <!-- TRIGGER -->
       <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-5 mb-4">
         <h3 class="text-sm font-semibold text-indigo-700 mb-4 uppercase tracking-wide">Trigger</h3>
-
         <div class="flex flex-wrap items-center gap-3 text-sm text-gray-700">
           <span class="font-semibold">IF</span>
-
-          <!-- Habit select -->
           <select
-            class="border border-gray-300 rounded-lg px-3 py-2 flex-1 min-w-40
-                   focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+            class="border border-gray-300 rounded-lg px-3 py-2 flex-1 min-w-40"
             [value]="form().trigger_habit_id"
             (change)="updateForm('trigger_habit_id', $any($event.target).value)"
           >
-            <option value="">Select habit</option>
+            <option value="" disabled>Select Habit</option>
             @for (habit of habits(); track habit.id) {
               <option [value]="habit.id">{{ habit.name }}</option>
             }
           </select>
-
-          <span class="font-semibold">is</span>
-
-          <!-- Trigger type select -->
+          <span>is</span>
           <select
-            class="border border-gray-300 rounded-lg px-3 py-2
-                   focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+            class="border border-gray-300 rounded-lg px-3 py-2"
             [value]="form().trigger_type"
             (change)="updateForm('trigger_type', $any($event.target).value)"
           >
-            <option [value]="TriggerType.HABIT_MISSED">missed</option>
-            <option [value]="TriggerType.HABIT_COMPLETED">completed</option>
+            <option [value]="TriggerType.HABIT_MISSED">Missed</option>
+            <option [value]="TriggerType.HABIT_COMPLETED">Completed</option>
           </select>
         </div>
       </div>
 
-      <!-- ─── CONDITION ──────────────────────────────────────────────── -->
-      <div class="bg-amber-50 border border-amber-100 rounded-xl p-5 mb-4">
-        <h3 class="text-sm font-semibold text-amber-700 mb-4 uppercase tracking-wide">Condition</h3>
-
-        <div class="flex flex-wrap items-center gap-3 text-sm text-gray-700">
-          <span class="font-semibold">AND it happens</span>
-
-          <!-- Times -->
+      <!-- CONDITION -->
+      <div class="bg-gray-50 border border-gray-100 rounded-xl p-5 mb-4">
+        <h3 class="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">Condition</h3>
+        <div class="flex items-center gap-3 text-sm text-gray-700">
           <input
             type="number"
-            min="1"
-            class="border border-gray-300 rounded-lg px-3 py-2 w-20 text-center
-                   focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            class="w-16 border border-gray-300 rounded-lg px-3 py-2"
             [value]="form().condition_times"
             (input)="updateForm('condition_times', +$any($event.target).value)"
           />
-
-          <span>time{{ form().condition_times > 1 ? 's' : '' }} in</span>
-
-          <!-- Days -->
+          <span>times in</span>
           <input
             type="number"
-            min="1"
-            class="border border-gray-300 rounded-lg px-3 py-2 w-20 text-center
-                   focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            class="w-16 border border-gray-300 rounded-lg px-3 py-2"
             [value]="form().condition_in_days"
             (input)="updateForm('condition_in_days', +$any($event.target).value)"
           />
-
           <span>days</span>
         </div>
       </div>
 
-      <!-- ─── ACTION ─────────────────────────────────────────────────── -->
-      <div class="bg-green-50 border border-green-100 rounded-xl p-5 mb-6">
+      <!-- ACTION -->
+      <div class="bg-green-50 border border-green-100 rounded-xl p-5 mb-8">
         <h3 class="text-sm font-semibold text-green-700 mb-4 uppercase tracking-wide">Action</h3>
-
-        <div class="flex flex-wrap items-center gap-3 text-sm text-gray-700 mb-3">
-          <span class="font-semibold">THEN</span>
-
-          <!-- Action type select -->
-          <select
-            class="border border-gray-300 rounded-lg px-3 py-2 flex-1 min-w-50
-                   focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-            [value]="form().action_type"
-            (change)="updateForm('action_type', $any($event.target).value)"
-          >
-            <option [value]="ActionType.SHOW_ALERT">Show Alert</option>
-            <option [value]="ActionType.SEND_NOTIFICATION">Send Notification</option>
-            <option [value]="ActionType.DISABLE_ROUTINE">Disable Routine</option>
-          </select>
-        </div>
-
-        <!-- Routine select (only for DISABLE_ROUTINE) -->
-        @if (actionNeedsRoutine()) {
+        <div class="space-y-4">
           <div class="flex items-center gap-3 text-sm text-gray-700">
-            <span class="font-semibold">Routine:</span>
+            <span class="font-semibold">THEN</span>
             <select
-              class="border border-gray-300 rounded-lg px-3 py-2 flex-1
-                     focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              class="border border-gray-300 rounded-lg px-3 py-2 flex-1"
+              [value]="form().action_type"
+              (change)="updateForm('action_type', $any($event.target).value)"
+            >
+              <option [value]="ActionType.SHOW_ALERT">Show Alert</option>
+              <option [value]="ActionType.SEND_NOTIFICATION">Send Notification</option>
+              <option [value]="ActionType.DISABLE_ROUTINE">Disable Routine</option>
+            </select>
+          </div>
+
+          @if (actionNeedsRoutine()) {
+            <select
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
               [value]="form().action_routine_id"
               (change)="updateForm('action_routine_id', $any($event.target).value)"
             >
-              <option value="">Select routine</option>
+              <option value="" disabled>Select Routine to Disable</option>
               @for (routine of routines(); track routine.id) {
                 <option [value]="routine.id">{{ routine.name }}</option>
               }
             </select>
-          </div>
-        }
+          }
 
-        <!-- Message input (only for SHOW_ALERT / SEND_NOTIFICATION) -->
-        @if (actionNeedsMessage()) {
-          <div class="flex items-center gap-3 text-sm text-gray-700">
-            <span class="font-semibold">Message:</span>
+          @if (actionNeedsMessage()) {
             <input
               type="text"
-              placeholder="e.g. Don't forget to drink water!"
-              class="border border-gray-300 rounded-lg px-3 py-2 flex-1
-                     focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Enter message..."
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
               [value]="form().action_message"
               (input)="updateForm('action_message', $any($event.target).value)"
             />
-          </div>
-        }
+          }
+        </div>
       </div>
 
-      <!-- Buttons -->
+      <!-- Footer -->
       <div class="flex gap-3">
         <button
           (click)="closeCreateDialog()"
-          class="flex-1 rounded-xl py-3 border border-gray-300
-                 text-gray-700 hover:bg-gray-100 transition"
+          class="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition"
         >
           Cancel
         </button>
         <button
           (click)="createRule()"
           [disabled]="!isFormValid()"
-          class="flex-1 rounded-xl py-3 bg-indigo-600 text-white
-                 hover:bg-indigo-700 transition disabled:opacity-50"
+          class="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 
+                 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg shadow-indigo-200"
         >
           Create Rule
         </button>
