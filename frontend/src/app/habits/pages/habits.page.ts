@@ -10,9 +10,7 @@ import { HabitCardComponent } from '../components/habit-card.component';
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
       @for (h of habits(); track h.id) {
         <app-habit-card
-          [name]="h.name"
-          [icon]="h.icon"
-          [completionRate]="h.completionRate"
+          [config]="h"
           (click)="open(h.id)"
         />
       }
@@ -32,8 +30,7 @@ export class HabitsPage {
     effect(
       () => {
         this.store.load();
-      },
-      { allowSignalWrites: true }
+      }
     );
   }
 
