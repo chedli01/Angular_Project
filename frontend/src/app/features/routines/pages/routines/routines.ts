@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, effect } from '@angular/core';
 import { RoutineService } from '@app/core/services/routines.service';
 import { Routine } from '@app/shared/models/routine.model';
 import { AddRoutine } from '../../components/add-routine/add-routine';
@@ -29,20 +29,20 @@ export class Routines {
   showAddDialog = signal(false);
   showEditDialog = signal(false);
   routineToEdit = signal<Routine | null>(null);
-  routineHabits = signal<Record<string, Habit[]>>({});
   allHabits = this.habitService.getHabits;
+  routineHabits = computed(() => this.habitRoutineService.getRoutineHabits());
   constructor() {
     this.routineService.routines$.subscribe(async (r) => {
       this.routines.set(r);
-      await this.loadRoutineHabits(r);
     });
-  }
-  async loadRoutineHabits(routines: Routine[]) {
-    const map: Record<string, Habit[]> = {};
-    for (const routine of routines) {
-      map[routine.id] = await this.habitRoutineService.loadByRoutine(routine.id);
-    }
-    this.routineHabits.set(map);
+    effect(() => {
+      const routines = this.routines();
+
+      if (routines.length === 0) return;
+      for (const routine of routines) {
+        this.habitRoutineService.loadByRoutine(routine.id);
+      }
+    });
   }
 
   openAddDialog() {
