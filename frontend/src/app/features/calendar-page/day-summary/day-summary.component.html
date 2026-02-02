@@ -1,0 +1,48 @@
+<div *ngIf="selectedDay">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center justify-between mb-1">
+      <h3 class="text-lg font-semibold text-foreground">
+        {{ selectedDay | date: 'EEEE' }}
+      </h3>
+      <button class="text-sm text-muted-foreground hover:text-foreground" (click)="clear()">
+        Clear
+      </button>
+    </div>
+    <p class="text-sm text-muted-foreground">
+      {{ selectedDay | date: 'MMMM d, yyyy' }}
+    </p>
+  </div>
+
+  <div *ngIf="loading()" class="text-sm italic text-muted-foreground flex items-center">
+    <mat-progress-spinner
+      diameter="200"
+      mode="indeterminate"
+      class="mr-2 align-middle"
+    ></mat-progress-spinner>
+  </div>
+  <div *ngIf="!loading()">
+    <app-habit-list-section
+      title="Completed"
+      [habits]="completedHabits()"
+      emptyText="No habits completed"
+      [completed]="true"
+    />
+
+    <app-habit-list-section
+      title="Not completed"
+      [habits]="notCompletedHabits()"
+      emptyText="All habits completed!"
+      [completed]="false"
+    />
+  </div>
+</div>
+
+<!-- Empty state -->
+<div *ngIf="!selectedDay" class="h-full flex flex-col items-center justify-center text-center">
+  <div class="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-3">📅</div>
+  <p class="text-sm font-medium text-foreground mb-1">Select a day</p>
+  <p class="text-xs text-muted-foreground max-w-45">
+    Click on any past day to view your activity summary
+  </p>
+</div>

@@ -1,0 +1,31 @@
+<div class="max-w-md mx-auto space-y-4 mr-5">
+  <!-- Header -->
+  <div class="space-y-2">
+    <h2 class="text-xl text-gray-900">All Habits</h2>
+
+    <!-- Search bar -->
+    <div class="relative">
+      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"> 🔍 </span>
+      <input
+        type="text"
+        placeholder="Search habits..."
+        [(ngModel)]="search"
+        class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-200"
+      />
+    </div>
+  </div>
+
+  <!-- Habits list -->
+  <div
+    cdkDropList
+    [id]="dropListId"
+    [cdkDropListConnectedTo]="connectedDropLists"
+    (cdkDropListDropped)="onDrop($event)"
+    cdkDropListSortingDisabled
+    class="flex flex-col gap-1"
+  >
+    @for (habit of filteredHabits(); track habit.id) {
+      <app-habit-routine [habit]="habit" />
+    }
+  </div>
+</div>

@@ -1,0 +1,47 @@
+<div class="mb-6">
+  <!-- Section title -->
+  <h4 class="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">
+    {{ title }}
+  </h4>
+
+  <!-- Empty state -->
+  <p *ngIf="habits.length === 0" class="text-sm text-muted-foreground italic">
+    {{ emptyText }}
+  </p>
+
+  <!-- Habit list -->
+  <div *ngIf="habits.length > 0" class="space-y-2">
+    <div
+      *ngFor="let habit of habits"
+      class="flex items-center gap-3 p-3 rounded-xl border"
+      [class.bg-success-100]="completed"
+      [class.border-success-200]="completed"
+      [class.bg-muted-100]="!completed"
+      [class.border-border-100]="!completed"
+    >
+      <!-- Icon -->
+      <span class="text-lg" [class.opacity-50]="!completed">
+        {{ habit.icon }}
+      </span>
+
+      <!-- Name -->
+      <span
+        class="flex-1 text-sm font-medium"
+        [class.text-foreground]="completed"
+        [class.text-muted-foreground]="!completed"
+      >
+        {{ habit.name }}
+      </span>
+
+      <!-- Status indicator -->
+      <div
+        class="h-5 w-5 rounded-full flex items-center justify-center"
+        [class.bg-success-200]="completed"
+        [class.bg-muted-100]="!completed"
+      >
+        <span *ngIf="completed">✓</span>
+        <span *ngIf="!completed">✕</span>
+      </div>
+    </div>
+  </div>
+</div>

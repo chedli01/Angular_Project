@@ -1,0 +1,146 @@
+/* ===========================
+   RESET BAD TRANSFORMS
+   =========================== */
+
+.calendar-wrapper {
+  transform: none;
+  width: fit-content;
+}
+
+/* ===========================
+   Calendar layout
+   =========================== */
+
+::ng-deep mat-calendar {
+  width: 280px;
+}
+
+/* ===========================
+   Day cell sizing (CRITICAL)
+   =========================== */
+
+::ng-deep .mat-calendar-body-cell {
+  width: 40px;
+  height: 40px;
+}
+
+::ng-deep .mat-calendar-body-cell-content {
+  width: 34px;
+  height: 34px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  line-height: 1;
+}
+
+/* ===========================
+   Heat levels
+   =========================== */
+
+::ng-deep .heat-1 .mat-calendar-body-cell-content {
+  background-color: #dcfce7;
+}
+
+::ng-deep .heat-2 .mat-calendar-body-cell-content {
+  background-color: #86efac;
+}
+
+::ng-deep .heat-3 .mat-calendar-body-cell-content {
+  background-color: #22c55e;
+  color: #ffffff;
+}
+
+::ng-deep .heat-4 .mat-calendar-body-cell-content {
+  background-color: #15803d;
+  color: #ffffff;
+}
+
+/* ===========================
+   Selected day (blue outline)
+   =========================== */
+
+::ng-deep .mat-calendar-body-selected {
+  background: transparent !important;
+}
+
+::ng-deep .mat-calendar-body-selected .mat-calendar-body-cell-content {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  background: transparent !important;
+  color: #2563eb;
+}
+
+/* ===========================
+   Today indicator
+   =========================== */
+
+::ng-deep .mat-calendar-body-today .mat-calendar-body-cell-content {
+  border: 1px solid #e5e7eb;
+}
+
+/* ===========================
+   Disabled / future days
+   =========================== */
+
+::ng-deep .mat-calendar-body-disabled .mat-calendar-body-cell-content {
+  color: #cbd5e1;
+}
+
+/* ===========================
+   Hover effect
+   =========================== */
+
+::ng-deep
+  .mat-calendar-body-cell:not(.mat-calendar-body-disabled)
+  .mat-calendar-body-cell-content:hover {
+  background-color: #e5e7eb;
+  cursor: pointer;
+}
+
+/* ===========================
+   Header typography
+   =========================== */
+
+::ng-deep .mat-calendar-header {
+  padding-bottom: 8px;
+}
+
+::ng-deep .mat-calendar-table-header {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* ===========================
+   Legend (NO OVERLAP)
+   =========================== */
+
+.legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.box {
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+}
+
+.low {
+  background: #dcfce7;
+}
+.mid {
+  background: #86efac;
+}
+.high {
+  background: #22c55e;
+}
+.full {
+  background: #15803d;
+}

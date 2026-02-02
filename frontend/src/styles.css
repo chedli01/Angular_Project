@@ -1,3 +1,19 @@
 /* You can add global styles to this file, and also import other style files */
+/* Add to your global styles.css or styles.scss */
+.cdk-drag {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1) !important;
+}
 
-@import "tailwindcss";
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1) !important;
+}
+
+/* Make sure all draggable elements have proper transitions */
+[cdkDrag] {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1) !important;
+}
+
+.cdk-drop-list-dragging .cdk-drag {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1) !important;
+}
+@import 'tailwindcss';

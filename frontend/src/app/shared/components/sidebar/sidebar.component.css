@@ -1,0 +1,15 @@
+:host {
+  display: contents;
+}
+
+aside {
+  will-change: width, transform;
+}
+
+a[routerLinkActive] {
+  position: relative;
+}
+
+.group:hover .absolute {
+  z-index: 100;
+}
