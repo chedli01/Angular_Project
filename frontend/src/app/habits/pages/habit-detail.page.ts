@@ -33,11 +33,6 @@ export class HabitDetailPage {
     return id ? this.store.habitById(id)() : undefined;
   });
 
-  readonly colors = computed(() => {
-    const h = this.habit();
-    return h ? getHabitColors(h.color) : null;
-  });
-
   back() {
     this.router.navigate(['/habits']);
   }

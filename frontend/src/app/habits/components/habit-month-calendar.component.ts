@@ -1,7 +1,13 @@
 import { Component, input } from '@angular/core';
-import { startOfMonth, endOfMonth, eachDayOfInterval, format, getDay, isToday } from 'date-fns';
+import {
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  format,
+  getDay,
+  isToday
+} from 'date-fns';
 import { NgClass } from '@angular/common';
-import type { HabitColorClasses } from './habit-heatmap.component';
 
 @Component({
   standalone: true,
@@ -26,12 +32,14 @@ import type { HabitColorClasses } from './habit-heatmap.component';
 
         @for (day of days; track day.toISOString()) {
           <div
-  class="aspect-square rounded-lg flex items-center justify-center text-sm"
-  [class]="isCompleted(day) ? colorClasses().light : 'text-gray-500'"
-  [class.ring-2]="isToday(day)"
-  [class.ring-gray-400]="isToday(day)"
->
-
+            class="aspect-square rounded-lg flex items-center justify-center text-sm text-gray-500"
+            [style.backgroundColor]="
+              isCompleted(day) ? color() : null
+            "
+            [style.opacity]="isCompleted(day) ? '0.15' : null"
+            [class.ring-2]="isToday(day)"
+            [class.ring-gray-400]="isToday(day)"
+          >
             {{ format(day, 'd') }}
           </div>
         }
@@ -41,9 +49,10 @@ import type { HabitColorClasses } from './habit-heatmap.component';
 })
 export class HabitMonthCalendarComponent {
   readonly completionDates = input.required<string[]>();
-  readonly colorClasses = input.required<HabitColorClasses>();
+  readonly color = input.required<string>();
 
   private readonly today = new Date();
+
   readonly days = eachDayOfInterval({
     start: startOfMonth(this.today),
     end: endOfMonth(this.today)

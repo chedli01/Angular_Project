@@ -8,15 +8,17 @@
 
   <!-- Hero section -->
   <div class="relative mb-10">
+    <!-- Left accent bar -->
     <div
       class="absolute left-0 top-0 bottom-0 w-1 rounded-full"
-      [ngClass]="colors()!.bg"
+      [style.background-color]="h.color"
     ></div>
 
     <div class="pl-6">
+      <!-- Icon -->
       <div
         class="h-16 w-16 rounded-2xl flex items-center justify-center mb-5"
-        [ngClass]="colors()!.light"
+        [style.background-color]="h.color"
       >
         <span class="text-3xl">{{ h.icon }}</span>
       </div>
@@ -39,12 +41,14 @@
       <div class="text-2xl font-bold">{{ h.completionDates.length }}</div>
       <div class="text-sm text-muted-foreground">Completions</div>
     </div>
+
     <div class="bg-card rounded-xl p-4 text-center">
       <div class="text-2xl font-bold">
         {{ 30 - h.completionDates.length }}
       </div>
       <div class="text-sm text-muted-foreground">Missed Days</div>
     </div>
+
     <div class="bg-card rounded-xl p-4 text-center">
       <div class="text-2xl font-bold">{{ h.completionRate }}%</div>
       <div class="text-sm text-muted-foreground">Completion Rate</div>
@@ -54,15 +58,15 @@
   <!-- Heatmap -->
   <app-habit-heatmap
     [completionDates]="h.completionDates"
-    [colorClasses]="colors()!"
-  />
+    [color]="h.color"
+  ></app-habit-heatmap>
 
   <!-- Calendar -->
   <app-habit-month-calendar
     class="mt-8"
     [completionDates]="h.completionDates"
-    [colorClasses]="colors()!"
-  />
+    [color]="h.color"
+  ></app-habit-month-calendar>
 }
 @else {
   <p class="text-muted-foreground">Habit not found</p>
