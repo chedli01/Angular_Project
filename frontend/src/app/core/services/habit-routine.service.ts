@@ -1,19 +1,25 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, WritableSignal } from '@angular/core';
 import { Habit } from '../../shared/models/habit.model';
-import { HabitRoutine } from '../../shared/models/habit-routine.model';
 import { supabase } from '../supabase/supabase.config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class HabitRoutineService {
-  private routineHabits = signal<Record<string, Habit[]>>({});
+  private routineHabitsMap: Record<string, WritableSignal<Habit[]>> = {};
+
   private loading = signal<boolean>(false);
   private error = signal<string | null>(null);
 
-  getRoutineHabits = this.routineHabits.asReadonly();
   getLoading = this.loading.asReadonly();
   getError = this.error.asReadonly();
+
+  getRoutineSignal(routineId: string): WritableSignal<Habit[]> {
+    if (!this.routineHabitsMap[routineId]) {
+      this.routineHabitsMap[routineId] = signal<Habit[]>([]);
+    }
+    return this.routineHabitsMap[routineId];
+  }
 
   async loadByRoutine(routineId: string): Promise<Habit[]> {
     this.loading.set(true);
@@ -22,26 +28,27 @@ export class HabitRoutineService {
     try {
       const { data, error } = await supabase
         .from('routine_habits')
-        .select('*, habits(*)') // join habits table to get full habit info
+        .select('*, habits(*)')
         .eq('routine_id', routineId);
 
       if (error) throw error;
-      const habits: Habit[] = (data || []).map((hr: any) => hr.habits); // adjust to your join structure
-      this.routineHabits.update((map) => ({ ...map, [routineId]: habits }));
+
+      const habits: Habit[] = (data || []).map((hr: any) => hr.habits);
+
+      this.getRoutineSignal(routineId).set(habits); // ✅ writable now
       return habits;
-    } catch (err) {
-      console.error('Error loading habit routines:', err);
-      this.error.set(err instanceof Error ? err.message : 'Failed to load habit routines');
+    } catch (err: any) {
+      console.error(err);
+      this.error.set(err.message || 'Failed to load habits');
       return [];
     } finally {
       this.loading.set(false);
     }
   }
 
-  /**
-   * Add a habit to a routine
-   */
-  async add(habitId: string, routineId: string): Promise<void> {
+  async add(habitId: string, routineId: string) {
+    const signal = this.getRoutineSignal(routineId);
+
     try {
       const { data, error } = await supabase
         .from('routine_habits')
@@ -51,34 +58,18 @@ export class HabitRoutineService {
 
       if (error) throw error;
 
-      const habit: Habit = data.habits; // again adjust based on join
-      this.routineHabits.update((map) => ({
-        ...map,
-        [routineId]: [...(map[routineId] || []), habit],
-      }));
-    } catch (err) {
-      console.error('Error adding habit routine:', err);
-      this.error.set(err instanceof Error ? err.message : 'Failed to add habit routine');
+      const habit = data.habits;
+      signal.set([...signal(), habit]);
+    } catch (err: any) {
+      console.error(err);
+      signal.set(signal().filter((h) => h.id !== habitId)); // rollback
     }
   }
 
-  /**
-   * Delete a habit from a routine
-   */
-  async delete(habitId: string, routineId: string): Promise<void> {
-    const previousMap = this.routineHabits();
-    const previousList = previousMap[routineId] || [];
-    const nextList = previousList.filter((h) => h.id !== habitId);
-
-    // If nothing changed, no need to hit the backend.
-    if (nextList.length === previousList.length) {
-      return;
-    }
-
-    this.routineHabits.update((map) => ({
-      ...map,
-      [routineId]: nextList,
-    }));
+  async delete(habitId: string, routineId: string) {
+    const signal = this.getRoutineSignal(routineId);
+    const previous = signal();
+    signal.set(previous.filter((h) => h.id !== habitId)); // optimistic update
 
     try {
       const { error } = await supabase
@@ -86,23 +77,15 @@ export class HabitRoutineService {
         .delete()
         .eq('routine_id', routineId)
         .eq('habit_id', habitId);
+
       if (error) throw error;
-    } catch (err) {
-      // Revert optimistic update on failure
-      this.routineHabits.update((map) => ({
-        ...map,
-        [routineId]: previousList,
-      }));
-      console.error('Error deleting habit routine:', err);
-      this.error.set(err instanceof Error ? err.message : 'Failed to delete habit routine');
-      throw err;
+    } catch (err: any) {
+      signal.set(previous); // rollback on failure
+      console.error(err);
     }
   }
 
-  /**
-   * Check if a habit exists in a routine
-   */
   exists(habitId: string, routineId: string): boolean {
-    return (this.routineHabits()[routineId] || []).some((h) => h.id === habitId);
+    return this.getRoutineSignal(routineId)().some((h) => h.id === habitId);
   }
 }
