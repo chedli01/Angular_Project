@@ -5,7 +5,6 @@ import { AddRoutine } from '../../components/add-routine/add-routine';
 import { EditRoutine } from '../../components/edit-routine/edit-routine';
 import { RoutineCard } from '../../components/routine-card/routine-card';
 import { CommonModule } from '@angular/common';
-import { HabitRoutineService } from '@app/core/services/habit-routine.service';
 import { Habit } from '@app/shared/models/habit.model';
 import { HabitListComponent } from '../../components/habit-list/habit-list';
 import { HabitDataService } from '@app/core/services/habit-data.service';
@@ -19,7 +18,6 @@ import { HabitDataService } from '@app/core/services/habit-data.service';
 })
 export class Routines {
   private routineService = inject(RoutineService);
-  private habitRoutineService = inject(HabitRoutineService);
   private habitService = inject(HabitDataService);
   routines = signal<Routine[]>([]);
   readonly habitsListId = 'available-habits-list';
