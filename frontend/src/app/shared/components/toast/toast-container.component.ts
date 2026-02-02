@@ -1,7 +1,6 @@
-import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AutomationService } from '@app/core/services/automation.service';
-import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-toast-container',
@@ -29,6 +28,7 @@ import { Subscription } from 'rxjs';
           <button
             (click)="dismiss(toast.id)"
             class="text-gray-400 hover:text-gray-700 flex-shrink-0 text-xl leading-none"
+            aria-label="Dismiss notification"
           >
             ×
           </button>
@@ -38,29 +38,27 @@ import { Subscription } from 'rxjs';
   `,
   styles: [`
     @keyframes slide-in {
-      from { transform: translateX(120%); opacity: 0; }
-      to   { transform: translateX(0);    opacity: 1; }
+      from { 
+        transform: translateX(120%); 
+        opacity: 0; 
+      }
+      to { 
+        transform: translateX(0); 
+        opacity: 1; 
+      }
     }
     .animate-slide-in {
       animation: slide-in 0.3s ease-out;
     }
   `]
 })
-export class ToastContainer implements OnInit, OnDestroy {
+export class ToastContainer {
   private automationService = inject(AutomationService);
-  private sub?: Subscription;
 
-  toasts = signal<any[]>([]);
+  // ✅ DIRECT SIGNAL ACCESS: No subscription needed!
+  readonly toasts = this.automationService.toasts;
 
-  ngOnInit() {
-    this.sub = this.automationService.toasts$.subscribe(t => this.toasts.set(t));
-  }
-
-  dismiss(id: string) {
+  dismiss(id: string): void {
     this.automationService.removeToast(id);
-  }
-
-  ngOnDestroy() {
-    this.sub?.unsubscribe();
   }
 }

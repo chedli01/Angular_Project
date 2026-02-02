@@ -1,4 +1,4 @@
-import { Component, inject, signal, effect } from '@angular/core';
+import { Component, inject, signal, effect, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AutomationService } from '@app/core/services/automation.service';
@@ -7,6 +7,17 @@ import { HabitDataService } from '@app/core/services/habit-data.service';
 import { AuthService } from '@app/core/services/auth.service';
 import { AutomationRule, TriggerType, ActionType } from '@app/shared/models/automation.model';
 import { Routine } from '@app/shared/models/routine.model';
+
+interface AutomationForm {
+  name: string;
+  trigger_type: TriggerType;
+  trigger_habit_id: string;
+  condition_times: number;
+  condition_in_days: number;
+  action_type: ActionType;
+  action_routine_id: string;
+  action_message: string;
+}
 
 @Component({
   selector: 'app-automation',
@@ -21,79 +32,78 @@ export class AutomationComponent {
   private habitService = inject(HabitDataService);
   private auth = inject(AuthService);
 
-  // Expose enums to template
+  // ✅ EXPOSE ENUMS TO TEMPLATE
   readonly TriggerType = TriggerType;
   readonly ActionType = ActionType;
 
-  rules = this.automationService.rules;
-  habits = this.habitService.getHabits;
-  routines = toSignal(this.routineService.routines$, { initialValue: [] as Routine[] });
+  // ✅ READONLY SIGNALS FROM SERVICES (Single source of truth)
+  readonly rules = this.automationService.rules;
+  readonly habits = this.habitService.getHabits;
+  readonly routines = toSignal(this.routineService.routines$, { initialValue: [] as Routine[] });
+  readonly isLoading = this.automationService.isLoading;
 
-  showCreateDialog = signal(false);
-
-  form = signal({
+  // ✅ COMPONENT-LOCAL STATE
+  readonly showCreateDialog = signal(false);
+  
+  private readonly defaultForm: AutomationForm = {
     name: '',
-    trigger_type: TriggerType.HABIT_MISSED as TriggerType,
+    trigger_type: TriggerType.HABIT_MISSED,
     trigger_habit_id: '',
     condition_times: 1,
     condition_in_days: 7,
-    action_type: ActionType.SHOW_ALERT as ActionType,
+    action_type: ActionType.SHOW_ALERT,
     action_routine_id: '',
     action_message: ''
+  };
+  
+  readonly form = signal<AutomationForm>({ ...this.defaultForm });
+
+  // ✅ COMPUTED SIGNALS: Derived UI state
+  readonly actionNeedsRoutine = computed(() => 
+    this.form().action_type === ActionType.DISABLE_ROUTINE
+  );
+
+  readonly actionNeedsMessage = computed(() => {
+    const actionType = this.form().action_type;
+    return actionType === ActionType.SHOW_ALERT || 
+           actionType === ActionType.SEND_NOTIFICATION;
+  });
+
+  readonly isFormValid = computed(() => {
+    const f = this.form();
+    
+    if (!f.name.trim()) return false;
+    if (!f.trigger_habit_id) return false;
+    if (f.condition_times < 1 || f.condition_in_days < 1) return false;
+    if (this.actionNeedsRoutine() && !f.action_routine_id) return false;
+    if (this.actionNeedsMessage() && !f.action_message.trim()) return false;
+    
+    return true;
   });
 
   constructor() {
     effect(() => {
       const userId = this.auth.userId();
       if (userId) {
-        console.log('🔄 User authenticated, loading automation rules...');
         this.automationService.loadRules();
       }
-    });
+    }, { allowSignalWrites: true });
   }
 
-  updateForm(field: keyof ReturnType<typeof this.form>, value: any) {
+  updateForm(field: keyof AutomationForm, value: any): void {
     this.form.update(f => ({ ...f, [field]: value }));
   }
 
-  actionNeedsRoutine(): boolean {
-    return this.form().action_type === ActionType.DISABLE_ROUTINE;
-  }
-
-  actionNeedsMessage(): boolean {
-    return this.form().action_type === ActionType.SHOW_ALERT ||
-           this.form().action_type === ActionType.SEND_NOTIFICATION;
-  }
-
-  isFormValid(): boolean {
-    const f = this.form();
-    if (!f.name.trim()) return false;
-    if (!f.trigger_habit_id) return false;
-    if (f.condition_times < 1 || f.condition_in_days < 1) return false;
-    if (this.actionNeedsRoutine() && !f.action_routine_id) return false;
-    if (this.actionNeedsMessage() && !f.action_message.trim()) return false;
-    return true;
-  }
-
-  openCreateDialog() {
+  openCreateDialog(): void {
     this.showCreateDialog.set(true);
   }
 
-  closeCreateDialog() {
+  closeCreateDialog(): void {
     this.showCreateDialog.set(false);
-    this.form.set({
-      name: '',
-      trigger_type: TriggerType.HABIT_MISSED,
-      trigger_habit_id: '',
-      condition_times: 1,
-      condition_in_days: 7,
-      action_type: ActionType.SHOW_ALERT,
-      action_routine_id: '',
-      action_message: ''
-    });
+    this.form.set({ ...this.defaultForm });
   }
 
-  async createRule() {
+  async createRule(): Promise<void> {
     if (!this.isFormValid()) return;
 
     const f = this.form();
@@ -120,15 +130,24 @@ export class AutomationComponent {
       this.closeCreateDialog();
     } catch (error) {
       console.error('Failed to create rule', error);
+      // TODO: Show error toast to user
     }
   }
 
-  async deleteRule(id: string) {
-    await this.automationService.deleteRule(id);
+  async deleteRule(id: string): Promise<void> {
+    try {
+      await this.automationService.deleteRule(id);
+    } catch (error) {
+      console.error('Failed to delete rule', error);
+    }
   }
 
-  async toggleRule(id: string, enabled: boolean) {
-    await this.automationService.toggleRule(id, enabled);
+  async toggleRule(id: string, enabled: boolean): Promise<void> {
+    try {
+      await this.automationService.toggleRule(id, enabled);
+    } catch (error) {
+      console.error('Failed to toggle rule', error);
+    }
   }
 
   getHabitName(id?: string): string {
