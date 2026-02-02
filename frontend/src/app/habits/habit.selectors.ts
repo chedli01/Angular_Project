@@ -22,6 +22,7 @@ export function computeHabitStats(
   return {
     ...habit,
     completionDates,
-    completionRate
+    completionRate,
+    daysTracked
   };
 }
