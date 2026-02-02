@@ -19,17 +19,28 @@
         [connectedDropLists]="routineDropListIds()"
       />
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
-      @for (routine of routines(); track routine.id) {
-        <app-routine-card
-          [routine]="routine"
-          (delete)="deleteRoutine($event)"
-          (edit)="editRoutine($event)"
-          (toggleActive)="toggleActiveRoutine($event)"
-          [habits]="routineHabits()[routine.id] || []"
-          [dropListId]="getRoutineDropListId(routine.id)"
-          [connectedDropLists]="[habitsListId]"
-        />
+    <div class="flex-1">
+      @if (routines().length > 0) {
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
+          @for (routine of routines(); track routine.id) {
+            <app-routine-card
+              [routine]="routine"
+              (delete)="deleteRoutine($event)"
+              (edit)="editRoutine($event)"
+              (toggleActive)="toggleActiveRoutine($event)"
+              [habits]="routineHabits()[routine.id] || []"
+              [dropListId]="getRoutineDropListId(routine.id)"
+              [connectedDropLists]="[habitsListId]"
+            />
+          }
+        </div>
+      } @else {
+        <div
+          class="text-center py-20 border-2 border-dashed border-gray-300 rounded-xl text-gray-400"
+        >
+          <p class="text-xl font-medium mb-2">No routines yet</p>
+          <p>Add a routine using the "Create Routine" button on the top right.</p>
+        </div>
       }
     </div>
   </div>
