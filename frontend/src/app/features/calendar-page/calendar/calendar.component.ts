@@ -7,6 +7,7 @@ import {
   AfterViewInit,
   Input,
   signal,
+  input,
 } from '@angular/core';
 import { MatCalendar } from '@angular/material/datepicker';
 import { HabitsRepository } from '../../../core/data/habits/habits.repository';
@@ -20,7 +21,7 @@ import { Subscription } from 'rxjs/internal/Subscription';
   styleUrls: ['./calendar.component.scss'],
 })
 export class CalendarComponent implements AfterViewInit {
-  @Input() selectedDay: Date | null = null;
+  selectedDay = input<Date | null>(null);
   @Output() daySelected = new EventEmitter<Date>();
   @ViewChild(MatCalendar) calendar!: MatCalendar<Date>;
   private _sub!: Subscription;
@@ -49,7 +50,7 @@ export class CalendarComponent implements AfterViewInit {
 
   onDaySelected(date: Date | null) {
     if (!date) return;
-    if (date.getTime() === this.selectedDay?.getTime()) return;
+    if (date.getTime() === this.selectedDay()?.getTime()) return;
     this.daySelected.emit(date);
   }
 

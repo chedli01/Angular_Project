@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { CalendarComponent } from './calendar/calendar.component';
 import { DaySummaryComponent } from './day-summary/day-summary.component';
 
@@ -10,9 +10,9 @@ import { DaySummaryComponent } from './day-summary/day-summary.component';
   styleUrls: ['./calendar-page.component.scss'],
 })
 export class CalendarPageComponent {
-  selectedDay: Date | null = null;
+  selectedDay = signal<Date | null>(null);
 
   onDaySelected(day: Date) {
-    this.selectedDay = day;
+    this.selectedDay.set(day);
   }
 }
