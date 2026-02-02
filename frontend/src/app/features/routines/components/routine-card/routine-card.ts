@@ -1,4 +1,4 @@
-import { Component, inject, input, output, signal, effect } from '@angular/core';
+import { Component, inject, input, output, signal, computed, OnInit, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Routine } from '@app/shared/models/routine.model';
 import { ClickOutsideDirective } from '@app/shared/directives/click-outside.directive';
@@ -14,23 +14,24 @@ import { HabitRoutineService } from '@app/core/services/habit-routine.service';
   templateUrl: './routine-card.html',
   styleUrls: ['./routine-card.css'],
 })
-export class RoutineCard {
+export class RoutineCard implements OnInit {
   routine = input.required<Routine>();
   delete = output<string>();
   edit = output<Routine>();
   toggleActive = output<string>();
   showMenu = signal(false);
-  habits = input<Habit[]>([]);
-  displayHabits = signal<Habit[]>([]);
   dropListId = input.required<string>();
   connectedDropLists = input<string[]>([]);
   private habitRoutineService = inject(HabitRoutineService);
-  private syncHabitsEffect = effect(() => {
-    const routineId = this.routine().id;
-    const routinesMap = this.habitRoutineService.getRoutineHabits();
-    const serviceHabits = routinesMap ? routinesMap[routineId] : undefined;
-    this.displayHabits.set(serviceHabits ?? this.habits());
-  });
+
+  habits = computed(() => this.habitRoutineService.getRoutineSignal(this.routine().id)());
+
+  ngOnInit() {
+    if (this.routine) {
+      this.habitRoutineService.loadByRoutine(this.routine().id);
+    }
+  }
+
   toggleMenu() {
     this.showMenu.set(!this.showMenu());
   }
@@ -52,17 +53,18 @@ export class RoutineCard {
   closeMenu() {
     this.showMenu.set(false);
   }
+
   async onHabitDrop(event: CdkDragDrop<Habit[]>) {
     const habit = event.item.data as Habit;
+    const routineId = this.routine().id;
 
-    const alreadyExists = this.displayHabits().some((habitt) => habitt.id === habit.id);
-
-    if (alreadyExists) return;
-    this.displayHabits.update((list) => [...list, habit]);
+    if (this.habitRoutineService.exists(habit.id, routineId)) {
+      return;
+    }
     try {
-      await this.habitRoutineService.add(habit.id, this.routine().id);
+      await this.habitRoutineService.add(habit.id, routineId);
     } catch (error) {
-      this.displayHabits.update((list) => list.filter((h) => h.id !== habit.id));
+      console.error('Failed to add habit to routine:', error);
       throw error;
     }
   }
