@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, signal, effect } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, effect, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HabitListSectionComponent } from './habit-list/habit-list-section.component';
 import { HabitsRepository, Habit } from '../../../core/data/habits/habits.repository';
@@ -11,17 +11,7 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
   styleUrls: ['./day-summary.component.scss'],
 })
 export class DaySummaryComponent {
-  private selectedDaySig = signal<Date | null>(null);
-
-  @Input()
-  set selectedDay(value: Date | null) {
-    this.selectedDaySig.set(value);
-  }
-
-  get selectedDay() {
-    return this.selectedDaySig();
-  }
-
+  selectedDay = input<Date | null>(null);
   @Output() clearRequested = new EventEmitter<void>();
 
   loading = signal(false);
@@ -30,9 +20,8 @@ export class DaySummaryComponent {
 
   constructor(private habitsRepo: HabitsRepository) {
     effect(() => {
-      const day = this.selectedDaySig();
+      const day = this.selectedDay();
 
-      // reset immediately
       this.completedHabits.set([]);
       this.notCompletedHabits.set([]);
 
