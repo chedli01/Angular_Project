@@ -19,12 +19,16 @@
 
     @for (routine of routines(); track routine.id) {
       <button
-        class="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border"
-        [class.border-blue-600]="selectedRoutineId() !== routine.id"
-        [class.text-blue-600]="selectedRoutineId() !== routine.id"
-        [class.bg-blue-600]="selectedRoutineId() === routine.id"
-        [class.text-white]="selectedRoutineId() === routine.id"
-        (click)="selectRoutine(routine.id)"
+        class="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border disabled:cursor-not-allowed disabled:opacity-40"
+        [disabled]="!routine.active"
+        [class.border-blue-600]="routine.active && selectedRoutineId() !== routine.id"
+        [class.text-blue-600]="routine.active && selectedRoutineId() !== routine.id"
+        [class.bg-blue-600]="routine.active && selectedRoutineId() === routine.id"
+        [class.text-white]="routine.active && selectedRoutineId() === routine.id"
+        [class.border-gray-500]="!routine.active"
+        [class.text-gray-500]="!routine.active"
+        [class.bg-gray-100]="!routine.active"
+        (click)="routine.active && selectRoutine(routine.id)"
       >
         {{ routine.name }}
       </button>
