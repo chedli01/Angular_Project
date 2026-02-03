@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 
@@ -14,6 +14,7 @@ export type Habit = {
   standalone: true,
   imports: [CommonModule, LucideAngularModule],
   templateUrl: './habit-list-section.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HabitListSectionComponent {
   @Input() title!: string;

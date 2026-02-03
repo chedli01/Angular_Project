@@ -1,4 +1,13 @@
-import { Component, Input, Output, EventEmitter, signal, effect, input } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  signal,
+  effect,
+  input,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HabitListSectionComponent } from './habit-list/habit-list-section.component';
 import { HabitsRepository, Habit } from '../../../core/data/habits/habits.repository';
@@ -9,6 +18,7 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
   imports: [CommonModule, HabitListSectionComponent, MatProgressSpinner],
   templateUrl: './day-summary.component.html',
   styleUrls: ['./day-summary.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DaySummaryComponent {
   selectedDay = input<Date | null>(null);
