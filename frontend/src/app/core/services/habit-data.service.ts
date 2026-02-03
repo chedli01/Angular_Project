@@ -16,7 +16,7 @@ export class HabitDataService {
   private loading = signal<boolean>(false);
   private error = signal<string | null>(null);
 
-  private automationService = inject(AutomationService)
+  private automationService = inject(AutomationService);
 
   getHabits = this.habits.asReadonly();
   getLoading = this.loading.asReadonly();
@@ -37,14 +37,34 @@ export class HabitDataService {
       .filter((c) => c.completed)
       .sort((a, b) => b.date.localeCompare(a.date));
 
+    if (sortedCompletions.length === 0) return 0;
+
     let streak = 0;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+
+    const mostRecentDate = new Date(sortedCompletions[0].date + 'T00:00:00');
+
+    if (mostRecentDate.getTime() < yesterday.getTime()) {
+      return 0;
+    }
+
+    let startDate: Date;
+    if (mostRecentDate.getTime() === today.getTime()) {
+      startDate = today;
+    } else if (mostRecentDate.getTime() === yesterday.getTime()) {
+      startDate = yesterday;
+    } else {
+      return 0;
+    }
+
     for (let i = 0; i < sortedCompletions.length; i++) {
       const completionDate = new Date(sortedCompletions[i].date + 'T00:00:00');
-      const expectedDate = new Date(today);
-      expectedDate.setDate(today.getDate() - i);
+      const expectedDate = new Date(startDate);
+      expectedDate.setDate(startDate.getDate() - i);
       expectedDate.setHours(0, 0, 0, 0);
 
       if (completionDate.getTime() === expectedDate.getTime()) {
@@ -175,7 +195,7 @@ export class HabitDataService {
       });
 
       if (error) throw error;
-      await this.automationService.checkHabitEvent(id,newCompletedState,new Date())
+      await this.automationService.checkHabitEvent(id, newCompletedState, new Date());
     } catch (err) {
       console.error('Error toggling completion:', err);
       this.error.set(err instanceof Error ? err.message : 'Failed to toggle completion');

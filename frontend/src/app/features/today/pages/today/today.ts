@@ -6,6 +6,7 @@ import { HabitFormData, HabitWithStatus } from '../../../../shared/models/habit.
 import { AddHabitDialog } from '../../components/add-habit-dialog/add-habit-dialog';
 import { RoutineService } from '@app/core/services/routines.service';
 import { HabitRoutineService } from '@app/core/services/habit-routine.service';
+import { HabitsStore } from '../../../../habits/habits.store';
 
 @Component({
   selector: 'app-today',
@@ -17,6 +18,7 @@ export class Today {
   public habitService = inject(HabitDataService);
   private routineService = inject(RoutineService);
   private habitRoutineService = inject(HabitRoutineService);
+  private habitsStore = inject(HabitsStore);
   private router = inject(Router);
 
   loading = this.habitService.getLoading;
@@ -61,8 +63,9 @@ export class Today {
     }
   }
 
-  onHabitClick(id: string) {
-    this.router.navigate(['/habit', id]);
+  async onHabitClick(id: string) {
+    await this.habitsStore.load();
+    this.router.navigate(['/habits', id]);
   }
 
   openAddDialog() {

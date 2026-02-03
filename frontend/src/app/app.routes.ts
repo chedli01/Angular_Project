@@ -6,7 +6,6 @@ import { SignupComponent } from './features/auth/signup/signup';
 import { MainLayoutComponent } from './shared/components/layout/main-layout.component';
 import { HabitsPage } from './habits/pages/habits.page';
 import { HabitDetailPage } from './habits/pages/habit-detail.page';
-import { AutomationComponent } from './features/automation/page/automation/automation';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent, canActivate: [NoAuthGuard] },
@@ -22,8 +21,7 @@ export const routes: Routes = [
 
       {
         path: 'today',
-        loadComponent: () =>
-          import('./features/today/pages/today/today').then((m) => m.Today),
+        loadComponent: () => import('./features/today/pages/today/today').then((m) => m.Today),
       },
 
       {
@@ -31,7 +29,6 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/routines/pages/routines/routines').then((m) => m.Routines),
       },
-        { path: 'automation', component: AutomationComponent },
 
       {
         path: 'calendar',
