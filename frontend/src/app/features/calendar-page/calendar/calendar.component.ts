@@ -8,6 +8,7 @@ import {
   Input,
   signal,
   input,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { MatCalendar } from '@angular/material/datepicker';
 import { HabitsRepository } from '../../../core/data/habits/habits.repository';
@@ -19,9 +20,10 @@ import { Subscription } from 'rxjs/internal/Subscription';
   imports: [MatCalendar],
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CalendarComponent implements AfterViewInit {
-  selectedDay = input<Date | null>(null);
+  @Input() selectedDay: Date | null = null;
   @Output() daySelected = new EventEmitter<Date>();
   @ViewChild(MatCalendar) calendar!: MatCalendar<Date>;
   private _sub!: Subscription;
@@ -50,7 +52,7 @@ export class CalendarComponent implements AfterViewInit {
 
   onDaySelected(date: Date | null) {
     if (!date) return;
-    if (date.getTime() === this.selectedDay()?.getTime()) return;
+    if (date.getTime() === this.selectedDay?.getTime()) return;
     this.daySelected.emit(date);
   }
 
