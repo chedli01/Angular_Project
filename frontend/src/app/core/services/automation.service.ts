@@ -23,15 +23,23 @@ export class AutomationService {
 
   rulesResource = resource({
     params: () => ({ userId: this.auth.userId() }),
-    loader: async ({ params }) => {
+    loader: async ({ params, abortSignal }) => {
       if (!params.userId) return [];
-      const { data, error } = await supabase
-        .from('automation_rules')
-        .select('*')
-        .eq('user_id', params.userId)
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      return data as AutomationRule[];
+      
+      try {
+        const { data, error } = await supabase
+          .from('automation_rules')
+          .select('*')
+          .eq('user_id', params.userId)
+          .order('created_at', { ascending: false })
+          .abortSignal(abortSignal);
+          
+        if (error) throw error;
+        return (data || []) as AutomationRule[];
+      } catch (err) {
+        console.error('Failed to load automation rules:', err);
+        throw err;
+      }
     },
   });
 
@@ -78,30 +86,73 @@ export class AutomationService {
   async createRule(rule: Omit<AutomationRule, 'id' | 'user_id' | 'created_at' | 'updated_at'>): Promise<void> {
     const userId = this.auth.userId();
     if (!userId) throw new Error('User not authenticated');
+    
     const now = new Date().toISOString();
-    const { error } = await supabase.from('automation_rules').insert([{
+    const newRule: AutomationRule = {
       ...rule,
+      id: crypto.randomUUID(),
       user_id: userId,
       created_at: now,
-      updated_at: now
-    }]);
-    if (error) throw error;
-    this.rulesResource.reload();
+      updated_at: now,
+    };
+
+    const current = this.rulesResource.value() || [];
+    this.rulesResource.update(() => [newRule, ...current]);
+
+    try {
+      const { error } = await supabase.from('automation_rules').insert([newRule]);
+      if (error) throw error;
+    } catch (error) {
+      this.rulesResource.reload();
+      throw error;
+    }
   }
 
   async deleteRule(id: string): Promise<void> {
-    const { error } = await supabase.from('automation_rules').delete().eq('id', id);
-    if (error) throw error;
-    this.rulesResource.reload();
+    const current = this.rulesResource.value();
+    if (!current) return;
+
+    const updatedRules = current.filter(r => r.id !== id);
+    this.rulesResource.update(() => updatedRules);
+
+    try {
+      const { error } = await supabase.from('automation_rules').delete().eq('id', id);
+      if (error) throw error;      
+      localStorage.removeItem(`rule_fired_${id}`);
+    } catch (error) {
+      this.rulesResource.reload();
+      throw error;
+    }
   }
 
   async toggleRule(id: string, enabled: boolean): Promise<void> {
-    const { error } = await supabase
-      .from('automation_rules')
-      .update({ enabled, updated_at: new Date().toISOString() })
-      .eq('id', id);
-    if (error) throw error;
-    this.rulesResource.reload();
+    const current = this.rulesResource.value();
+    if (!current) return;
+
+    const ruleIndex = current.findIndex(r => r.id === id);
+    if (ruleIndex === -1) return;
+
+    const now = new Date().toISOString();
+
+    const updatedRules = [...current];
+    updatedRules[ruleIndex] = {
+      ...updatedRules[ruleIndex],
+      enabled,
+      updated_at: now,
+    };
+    this.rulesResource.update(() => updatedRules);
+
+    try {
+      const { error } = await supabase
+        .from('automation_rules')
+        .update({ enabled, updated_at: now })
+        .eq('id', id);
+        
+      if (error) throw error;
+    } catch (error) {
+      this.rulesResource.reload();
+      throw error;
+    }
   }
 
   private async checkCondition(rule: AutomationRule): Promise<boolean> {
@@ -138,26 +189,55 @@ export class AutomationService {
 
   private async executeAction(rule: AutomationRule): Promise<void> {
     const { action } = rule;
+    
     switch (action.type) {
       case ActionType.SHOW_ALERT:
         this.showToast(action.message || 'Automation triggered!', 'alert');
         break;
+        
       case ActionType.SEND_NOTIFICATION:
-        this.sendBrowserNotification(action.message || 'Automation triggered!');
+        await this.sendBrowserNotification(action.message || 'Automation triggered!');
         this.showToast(action.message || 'Automation triggered!', 'notification');
         break;
+        
       case ActionType.DISABLE_ROUTINE:
         if (action.routine_id) {
-          await this.routineService.toggleActiveRoutine(action.routine_id);
+          await this.disableRoutine(action.routine_id);
           this.showToast(`Routine disabled by automation: ${rule.name}`, 'alert');
         }
         break;
     }
   }
 
+  private async disableRoutine(routineId: string): Promise<void> {
+    const routines = this.routineService.routines();
+    if (!routines) return;
+    
+    const routine = routines.find(r => r.id === routineId);
+    if (!routine || !routine.active) return;
+  
+    const { error } = await supabase
+      .from('routines')
+      .update({ active: false })
+      .eq('id', routineId);
+      
+    if (error) {
+      console.error('Failed to disable routine:', error);
+      return;
+    }
+    this.routineService.routinesResource.reload();
+  }
+
   private showToast(message: string, type: 'alert' | 'notification'): void {
-    const toast: Toast = { id: crypto.randomUUID(), message, type, createdAt: new Date() };
+    const toast: Toast = { 
+      id: crypto.randomUUID(), 
+      message, 
+      type, 
+      createdAt: new Date() 
+    };
+    
     this._toasts.update(toasts => [...toasts, toast]);
+    
     setTimeout(() => this.removeToast(toast.id), 8000);
   }
 
@@ -165,10 +245,18 @@ export class AutomationService {
     this._toasts.update(toasts => toasts.filter(t => t.id !== id));
   }
 
-  private sendBrowserNotification(message: string): void {
+  private async sendBrowserNotification(message: string): Promise<void> {
     if (!('Notification' in window)) return;
+    
+    if (Notification.permission === 'default') {
+      await Notification.requestPermission();
+    }
+    
     if (Notification.permission === 'granted') {
-      new Notification('Habit Automation', { body: message });
+      new Notification('Habit Automation', { 
+        body: message,
+        icon: '/favicon.ico'
+      });
     }
   }
 }
